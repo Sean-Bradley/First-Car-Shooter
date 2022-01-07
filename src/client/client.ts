@@ -20,7 +20,10 @@ const camera = new THREE.PerspectiveCamera(
 )
 camera.position.set(0, 0, 2000)
 
-const game = new Game(socket, scene, renderer, camera)
+const listener = new THREE.AudioListener()
+camera.add(listener)
+
+const game = new Game(socket, scene, renderer, camera, listener)
 
 window.addEventListener('resize', onWindowResize, false)
 function onWindowResize() {

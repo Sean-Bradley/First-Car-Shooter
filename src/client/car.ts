@@ -8,9 +8,9 @@ export default class Car {
     wheelRFMesh = new THREE.Group()
     wheelLBMesh = new THREE.Group()
     wheelRBMesh = new THREE.Group()
-    bullet: THREE.Mesh
+    bullet: THREE.Mesh[] = []
     turretMesh: THREE.Mesh
-    lastC = -1 //used to decide if a bullet should instantly be repositioned or smoothly lerped
+    lastC = [-1, -1, -1] //used to decide if a bullet should instantly be repositioned or smoothly lerped
 
     v = new THREE.Vector3()
     thrusting = false
@@ -32,8 +32,16 @@ export default class Car {
     targetPosRBWheel = new THREE.Vector3()
     targetQuatRBWheel = new THREE.Quaternion()
 
-    targetPosBullet = new THREE.Vector3()
-    targetQuatBullet = new THREE.Quaternion()
+    targetPosBullet = [
+        new THREE.Vector3(),
+        new THREE.Vector3(),
+        new THREE.Vector3(),
+    ]
+    targetQuatBullet = [
+        new THREE.Quaternion(),
+        new THREE.Quaternion(),
+        new THREE.Quaternion(),
+    ]
 
     turretPivot = new THREE.Object3D()
     targetQuatTurret = new THREE.Quaternion()
@@ -41,7 +49,15 @@ export default class Car {
     tmpVec = new THREE.Vector3()
     tmpQuat = new THREE.Quaternion()
 
-    constructor(scene: THREE.Scene) {
+    listener: THREE.AudioListener
+    carSound: THREE.PositionalAudio
+    shootSound: THREE.PositionalAudio
+
+    carFullySetup = false
+
+    constructor(scene: THREE.Scene, listener: THREE.AudioListener) {
+        this.listener = listener
+
         //const phongMaterial = new THREE.MeshNormalMaterial()
         const pipesMaterial = new THREE.MeshStandardMaterial()
         //const pipesMaterial = new THREE.MeshPhysicalMaterial()
@@ -84,6 +100,23 @@ export default class Car {
         // )
         // scene.add(this.debugMesh)
 
+        const audioLoader = new THREE.AudioLoader()
+        const carSound = new THREE.PositionalAudio(this.listener)
+        audioLoader.load('sounds/engine.wav', (buffer) => {
+            carSound.setBuffer(buffer)
+            carSound.setVolume(.5)
+        })
+        this.carSound = carSound
+
+        const shootSound = new THREE.PositionalAudio(this.listener)
+        audioLoader.load('sounds/rocket.ogg', (buffer) => {
+            shootSound.setBuffer(buffer)
+            shootSound.setVolume(2)
+        })
+        this.shootSound = shootSound
+
+        
+
         loader.load(
             'models/frame.glb',
             (gltf) => {
@@ -94,6 +127,9 @@ export default class Car {
                     gltf.scene.children[0] as THREE.Mesh
                 ).geometry
                 this.frame.castShadow = true
+                this.carSound.loop = true
+                this.frame.add(this.carSound)
+                this.frame.add(this.shootSound)
 
                 loader.load(
                     'models/tyre.glb',
@@ -103,8 +139,8 @@ export default class Car {
                         this.wheelRFMesh = this.wheelLFMesh.clone()
                         this.wheelLBMesh = this.wheelLFMesh.clone()
                         this.wheelRBMesh = this.wheelLFMesh.clone()
-                        this.wheelLFMesh.scale.setScalar(0.75)
-                        this.wheelRFMesh.scale.setScalar(0.75)
+                        this.wheelLFMesh.scale.setScalar(0.9)
+                        this.wheelRFMesh.scale.setScalar(0.9)
                         scene.add(this.wheelLFMesh)
                         scene.add(this.wheelRFMesh)
                         scene.add(this.wheelLBMesh)
@@ -153,15 +189,16 @@ export default class Car {
         // scene.add(this.wheelRBMesh)
 
         //bullets
-        const bulletGeometry = new THREE.SphereGeometry(0.2) // THREE.CylinderGeometry(0.1, 0.1, 0.75)
-        //bulletGeometry.rotateX(Math.PI / 2)
-        //bulletGeometry.translate(0, 0, -0.5)
-        this.bullet = new THREE.Mesh(
-            bulletGeometry,
-            new THREE.MeshBasicMaterial({ color: 0x00ff00, wireframe: true })
-        )
-        this.bullet.castShadow = true
-        scene.add(this.bullet)
+        for (let i = 0; i < 3; i++) {
+            this.bullet[i] = new THREE.Mesh(
+                new THREE.SphereGeometry(0.2),
+                new THREE.MeshBasicMaterial({ color: 0x00ff00, wireframe: true })
+            )
+            this.bullet[i].castShadow = true
+            scene.add(this.bullet[i])
+        }
+
+        this.carFullySetup = true
     }
 
     updateData(gameData: any) {
@@ -225,37 +262,39 @@ export default class Car {
             gameData.cq.w
         )
 
-        if (gameData.b[0].c > this.lastC) {
-            //set pos and quat now
-            this.lastC = gameData.b[0].c
-            this.bullet.position.copy(this.turretMesh.position)
-            this.bullet.quaternion.copy(this.turretMesh.quaternion)
-            this.targetPosBullet.set(
-                gameData.b[0].p.x,
-                gameData.b[0].p.y,
-                gameData.b[0].p.z
+        for (let i = 0; i < 3; i++) {
+            //console.log(gameData.bc > this.lastBC)
+            if (gameData.b[i].c > this.lastC[i]) {
+                //set pos and quat now
+                this.lastC[i] = gameData.b[i].c
+                this.bullet[i].position.copy(this.turretMesh.position)
+                this.bullet[i].quaternion.copy(this.turretMesh.quaternion)
+
+                //
+                if(this.shootSound.isPlaying){
+                    this.shootSound.stop()
+                }
+                this.shootSound.play()
+
+            }
+            this.targetPosBullet[i].set(
+                gameData.b[i].p.x,
+                gameData.b[i].p.y,
+                gameData.b[i].p.z
             )
-            this.targetQuatBullet.set(
-                gameData.b[0].q.x,
-                gameData.b[0].q.y,
-                gameData.b[0].q.z,
-                gameData.b[0].q.w
-            )
-        } else {
-            this.targetPosBullet.set(
-                gameData.b[0].p.x,
-                gameData.b[0].p.y,
-                gameData.b[0].p.z
-            )
-            this.targetQuatBullet.set(
-                gameData.b[0].q.x,
-                gameData.b[0].q.y,
-                gameData.b[0].q.z,
-                gameData.b[0].q.w
+            this.targetQuatBullet[i].set(
+                gameData.b[i].q.x,
+                gameData.b[i].q.y,
+                gameData.b[i].q.z,
+                gameData.b[i].q.w
             )
         }
 
-        //debug cannon shape
+        this.carSound.setPlaybackRate(
+            Math.abs(gameData.v / 50) + Math.random() / 9
+        )
+
+        // //debug cannon shape
         // this.debugMesh.position.set(gameData.dp.x, gameData.dp.y, gameData.dp.z)
         // this.debugMesh.quaternion.set(
         //     gameData.dq.x,
@@ -285,9 +324,11 @@ export default class Car {
 
         //console.log(this.turretMesh.position.x)
 
-        this.bullet.position.lerp(this.targetPosBullet, 0.2)
-        this.bullet.quaternion.slerp(this.targetQuatBullet, 0.2)
-        //this.bullet.position.copy(this.targetPosBullet)
-        //this.bullet.quaternion.copy(this.targetQuatBullet)
+        for (let i = 0; i < 3; i++) {
+            this.bullet[i].position.lerp(this.targetPosBullet[i], 0.2)
+            this.bullet[i].quaternion.slerp(this.targetQuatBullet[i], 0.2)
+            //this.bullet.position.copy(this.targetPosBullet)
+            //this.bullet.quaternion.copy(this.targetQuatBullet)
+        }
     }
 }

@@ -1,149 +1,151 @@
 <!DOCTYPE html>
 <html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta
+            name="viewport"
+            content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0"
+        />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <title>Three.js TypeScript Tutorials by Sean Bradley</title>
+        <style>
+            html,
+            body {
+                margin: 0;
+                height: 100%;
+                font-family: monospace;
+                background-color: black;
+            }
 
-<head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <title>Three.js TypeScript Tutorials by Sean Bradley</title>
-    <style>
-        html,
-        body {
-            margin: 0;
-            height: 100%;
-            font-family: monospace;
-            background-color: black;
-        }
+            h1 {
+                font-size: 64px;
+            }
 
-        h1 {
-            font-size: 64px;
-        }
+            h2 {
+                font-size: 32px;
+            }
 
-        h2 {
-            font-size: 32px;
-        }
+            #pingStats {
+                position: absolute;
+                top: 60px;
+                left: 4px;
+                width: 400px;
+                height: 400px;
+                pointer-events: none;
+                color: white;
+            }
 
-        #pingStats {
-            position: absolute;
-            top: 60px;
-            left: 4px;
-            width: 400px;
-            height: 400px;
-            pointer-events: none;
-            color: white;
-        }
+            #gameClock {
+                position: absolute;
+                top: 10px;
+                left: 50%;
+                margin-left: -42px;
+                width: 84px;
+                height: 78px;
+                font-size: 72px;
+                text-align: center;
+                color: white;
+                pointer-events: none;
+            }
 
-        /* #gameClock {
-            position: absolute;
-            top: 10px;
-            left: 50%;
-            margin-left: -42px;
-            width: 84px;
-            height: 78px;
-            font-size: 72px;
-            text-align: center;
-            color: white;
-            pointer-events: none;
-        } */
+            #newGameAlert {
+                position: absolute;
+                height: 400px;
+                width: 500px;
+                margin-top: -200px;
+                margin-left: -250px;
+                top: 50%;
+                left: 50%;
+                color: white;
+                /* border: 1px solid red; */
+                text-align: center;
+                pointer-events: none;
+                display: none;
+            }
 
-        /* #newGameAlert {
-            position: absolute;
-            height: 400px;
-            width: 500px;
-            margin-top: -200px;
-            margin-left: -250px;
-            top: 50%;
-            left: 50%;
-            color: white;
-            /* border: 1px solid red; */
-            /* text-align: center;
-            pointer-events: none;
-            display: none;
-        } */ 
+            #gameClosedAlert {
+                position: absolute;
+                height: 400px;
+                width: 500px;
+                margin-top: -200px;
+                margin-left: -250px;
+                top: 50%;
+                left: 50%;
+                color: white;
+                /* border: 1px solid red; */
+                text-align: center;
+                pointer-events: none;
+                display: none;
+            }
 
-        /* #gameClosedAlert {
-            position: absolute;
-            height: 400px;
-            width: 500px;
-            margin-top: -200px;
-            margin-left: -250px;
-            top: 50%;
-            left: 50%;
-            color: white;
-            /* border: 1px solid red; */
-            /* text-align: center;
-            pointer-events: none;
-            display: none;
-        } */ 
+            #winnerLabel {
+                display: none;
+            }
 
-        /* #winnerLabel {
-            display: none;
-        }
+            #winnerScreenName {
+                font-size: 64px;
+            }
 
-        #winnerScreenName {
-            font-size: 64px;
-        } */
+            #menuPanel {
+                position: absolute;
+                background-color: rgba(255, 255, 255, 0.15);
+                top: 0px;
+                left: 0px;
+                width: 100%;
+                height: 100%;
+                pointer-events: none;
+                /* display: none; */
+            }
 
-        #menuPanel {
-            position: absolute;
-            background-color: rgba(255, 255, 255, 0.15);
-            top: 0px;
-            left: 0px;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            /* display: none; */
-        }
+            #menuPanel a {
+                pointer-events: auto;
+            }
 
-        #menuPanel a {
-            pointer-events: auto;
-        }
+            #instructions {
+                height: 600px;
+                width: 800px;
+                margin-top: -300px;
+                margin-left: -400px;
+                position: relative;
+                top: 50%;
+                left: 50%;
+                font-size: 21px;
+                border: 1px solid black;
+                text-align: center;
+                pointer-events: none;
+            }
 
-        #instructions {
-            height: 600px;
-            width: 800px;
-            margin-top: -300px;
-            margin-left: -400px;
-            position: relative;
-            top: 50%;
-            left: 50%;
-            font-size: 21px;
-            border: 1px solid black;
-            text-align: center;
-            pointer-events: none;
-        }
+            #startButton {
+                height: 50px;
+                width: 230px;
+                font-size: 24px;
+                margin: 10px;
+                pointer-events: auto;
+            }
 
-        #startButton {
-            height: 50px;
-            width: 230px;
-            font-size: 24px;
-            margin: 10px;
-            pointer-events: auto;
-        }
+            #screenNameInput {
+                font-size: 24px;
+                width: 140px;
+                pointer-events: auto;
+            }
 
-        #screenNameInput {
-            font-size: 24px;
-            width: 140px;
-            pointer-events: auto;
-        }
+            #recentWinnersTable {
+                position: absolute;
+                width: 200px;
+                height: 200px;
+                border: 1px solid black;
+                right: 20px;
+                top: 20px;
+                color: white;
+                font-size: 17px;
+                display: none;
+            }
 
-        /* #recentWinnersTable {
-            position: absolute;
-            width: 200px;
-            height: 200px;
-            border: 1px solid black;
-            right: 20px;
-            top: 20px;
-            color: white;
-            font-size: 17px;
-            display: none;
-        } */
+            #recentWinnersTable th {
+                text-align: left;
+            }
 
-        /* #recentWinnersTable th {
-            text-align: left;
-        } */
-
-        /* #XYControllerMove {
+            /* #XYControllerMove {
             position: absolute;
             width: 180px;
             height: 180px;
@@ -163,7 +165,7 @@
             display: none;
         } */
 
-        /* @media only screen and (max-width: 812px) {
+            /* @media only screen and (max-width: 812px) {
 
             #pingStats {
                 position: absolute;
@@ -214,7 +216,7 @@
 
         } */
 
-        /* @media only screen and (max-width: 375px) {
+            /* @media only screen and (max-width: 375px) {
             #pingStats {
                 position: absolute;
                 top: 50px;
@@ -267,49 +269,59 @@
 
 
         } */
-    </style>
-</head>
+        </style>
+    </head>
 
-<body>
-    <div id="gameClock"></div>
-    <div id="menuPanel">
-        <div id="instructions">
-            <h1>First Car Shooter (FCS)</h1>
-            <h2>Multiplayer FCS written in Threejs with server side CannonJS physics and SocketIO</h2>
-            <button id="startButton">Click to Start</button><br />
-            Drive: WASD<br />
-            Brakes: SPACE<br />
-            Look: MOUSE
-            Shoot: Left Click
-            <div>
-                <label for="email">ScreenName:</label>
-                <input type="text" id="screenNameInput" maxlength="12" onClick="this.select();">
+    <body>
+        <div id="gameClock"></div>
+        <div id="menuPanel">
+            <div id="instructions">
+                <h1>First Car Shooter</h1>
+                <h2>
+                    Multiplayer FCS written in Threejs with server side CannonJS
+                    physics and SocketIO
+                </h2>
+                <button id="startButton">Click to Start</button><br />
+                Drive: WASD<br />
+                Brakes: SPACE<br />
+                Look: MOUSE Shoot: Left Click
+                <div>
+                    <label for="email">ScreenName:</label>
+                    <input
+                        type="text"
+                        id="screenNameInput"
+                        maxlength="12"
+                        onClick="this.select();"
+                    />
+                </div>
+                <p>
+                    This is a multiplayer game constructed using Threejs, SocketIO
+                    and server side Cannonjs. It is supplement to my Three.js and
+                    TypeScript tutorials at
+                    <a href="https://sbcode.net/threejs/" target="_blank"
+                        >https://sbcode.net/threejs/</a
+                    >
+                </p>
             </div>
-            <p>
-                This is a multiplayer game constructed using Threejs, SocketIO and server side Cannonjs. It is supplement to my
-                Three.js and TypeScript tutorials at <a href="https://sbcode.net/threejs/"
-                    target="_blank">https://sbcode.net/threejs/</a>
-            </p>
         </div>
-    </div>
-    <!-- <div id="newGameAlert">
-        <h1>New Game</h1>
-    </div>
-    <div id="gameClosedAlert">
-        <h1>Game Closed</h1>
-        <h2 id="winnerLabel">Winner</h2><span id="winnerScreenName"></span>
-    </div> -->
-    <div id="pingStats"></div>
-    <!-- <table id="recentWinnersTable">
-        <tr>
-            <th>Screen Name</th>
-            <th>Time</th>
-        </tr>
-    </table> -->
-    <!-- <canvas id="XYControllerLook"></canvas>
+        <div id="newGameAlert">
+            <h1>New Game</h1>
+        </div>
+        <div id="gameClosedAlert">
+            <h1>Game Closed</h1>
+            <h2 id="winnerLabel">Winner</h2>
+            <span id="winnerScreenName"></span>
+        </div>
+        <div id="pingStats"></div>
+        <table id="recentWinnersTable">
+            <tr>
+                <th>Screen Name</th>
+                <th>Score</th>
+            </tr>
+        </table>
+        <!-- <canvas id="XYControllerLook"></canvas>
     <canvas id="XYControllerMove"></canvas> -->
 
-    <script type="module" src="bundle.js"></script>
-</body>
-
+        <script type="module" src="bundle.js"></script>
+    </body>
 </html>

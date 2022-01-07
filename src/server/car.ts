@@ -4,6 +4,7 @@ import Player from './player'
 //import Bullet from './bullet'
 
 export default class Car {
+    public socketId: string
     public world: CANNON.World
 
     // private carObject: THREE.Object3D
@@ -40,8 +41,12 @@ export default class Car {
     public camQuat = new THREE.Quaternion()
     public tmpVec = new THREE.Vector3()
 
-    public bullet: CANNON.Body
-    lastBulletCounter = -1 //used to decide if a bullet should instantly be repositioned or smoothly lerped
+    public bullet: CANNON.Body[] = []
+    lastBulletCounter = [-1, -1, -1] //used to decide if a bullet should instantly be repositioned or smoothly lerped
+    bulletId = -1
+
+    public partIds: number[] = []
+    public enabled = true
 
     // public bodyId = -1
     // public screenName = ''
@@ -50,26 +55,37 @@ export default class Car {
     // public q = { x: 0, y: 0, z: 0, w: 0 } //quaternion
     // public t = -1 //ping timestamp
 
+    public score:number
+
     constructor(
         //scene: THREE.Scene,
         player: Player,
         world: CANNON.World,
         //chaseCam: THREE.Object3D,
         earthSphere: THREE.Mesh,
-        wheelMaterial: CANNON.Material
+        wheelMaterial: CANNON.Material,
+        socketId: string
     ) {
+        this.socketId = socketId
         this.player = player
         this.world = world
-
+        this.score = 0
+        
         this.earthSphere = earthSphere
 
         this.raycaster = new THREE.Raycaster()
 
+        // const outside = new THREE.Vector3(
+        //     Math.random() * 2 - 1,
+        //     Math.random() * 2 - 1,
+        //     Math.random() * 2 - 1
+        // ).normalize()
         const outside = new THREE.Vector3(
-            Math.random() * 2 - 1,
-            Math.random() * 2 - 1,
-            Math.random() * 2 - 1
+            Math.random() * 0.2 - 0.1,
+            1,
+            Math.random() * 0.2 - 0.1
         ).normalize()
+
         const inside = new THREE.Vector3()
             .subVectors(new THREE.Vector3(), outside)
             .normalize()
@@ -97,46 +113,58 @@ export default class Car {
         // this.carObject.add(this.turretPivot)
 
         this.frame = new CANNON.Body({ mass: 0.1 })
-        this.frame.addShape(new CANNON.Box(new CANNON.Vec3(0.8, 0.3, 1))) //main frame
+        this.frame.addShape(new CANNON.Sphere(0.4), new CANNON.Vec3(0.5, 0.25, -1))
+        this.frame.addShape(new CANNON.Sphere(0.4), new CANNON.Vec3(-0.5, 0.25, -1))
+        this.frame.addShape(new CANNON.Sphere(0.4), new CANNON.Vec3(0.4, 0.25, 1))
+        this.frame.addShape(new CANNON.Sphere(0.4), new CANNON.Vec3(-0.4, 0.25, 1))
+        this.frame.addShape(new CANNON.Sphere(0.4), new CANNON.Vec3(0, 0.7, 0))
+        // new CANNON.Box(new CANNON.Vec3(0.8, 0.3, 1))) //main frame
         this.world.addBody(this.frame)
+        this.partIds.push(this.frame.id)
 
         //const turretShape = new CANNON.Box(new CANNON.Vec3(0.2, 0.2, 0.75))
         this.turretBody = new CANNON.Body({ mass: 0 })
         //this.turretBody.addShape(turretShape, new CANNON.Vec3(0, 0, -0.5))
-        this.turretBody.addShape(new CANNON.Sphere(0.2), new CANNON.Vec3(0, 0, 0))
+        //this.turretBody.addShape(new CANNON.Sphere(0.5), new CANNON.Vec3(0, 0, 0))
         this.turretBody.addShape(
             new CANNON.Sphere(0.2),
             new CANNON.Vec3(0, 0, -1.0)
         )
         this.world.addBody(this.turretBody)
+        this.partIds.push(this.turretBody.id)
 
-        const wheelLFShape = new CANNON.Sphere(0.3)
+        const wheelLFShape = new CANNON.Sphere(0.35)
         this.wheelLFBody = new CANNON.Body({ mass: 1, material: wheelMaterial })
         this.wheelLFBody.addShape(wheelLFShape)
         this.world.addBody(this.wheelLFBody)
+        this.partIds.push(this.wheelLFBody.id)
 
-        const wheelRFShape = new CANNON.Sphere(0.3)
+        const wheelRFShape = new CANNON.Sphere(0.35)
         this.wheelRFBody = new CANNON.Body({ mass: 1, material: wheelMaterial })
         this.wheelRFBody.addShape(wheelRFShape)
         this.world.addBody(this.wheelRFBody)
+        this.partIds.push(this.wheelRFBody.id)
 
         const wheelLBShape = new CANNON.Sphere(0.4)
         this.wheelLBBody = new CANNON.Body({ mass: 1, material: wheelMaterial })
         this.wheelLBBody.addShape(wheelLBShape)
         this.world.addBody(this.wheelLBBody)
+        this.partIds.push(this.wheelLBBody.id)
 
         const wheelRBShape = new CANNON.Sphere(0.4)
         this.wheelRBBody = new CANNON.Body({ mass: 1, material: wheelMaterial })
         this.wheelRBBody.addShape(wheelRBShape)
         this.world.addBody(this.wheelRBBody)
+        this.partIds.push(this.wheelRBBody.id)
 
         //add bullets
-        const bullet = new CANNON.Sphere(0.2)
-        this.bullet = new CANNON.Body({ mass: 1 }) //, material: wheelMaterial })
-        this.bullet.addShape(bullet)
-
-        //this.bullet.sleep()
-        this.world.addBody(this.bullet)
+        for (let i = 0; i < 3; i++) {
+            const bullet = new CANNON.Sphere(0.15)
+            this.bullet[i] = new CANNON.Body({ mass: 1 }) //, material: wheelMaterial })
+            this.bullet[i].addShape(bullet)
+            //this.bullet.sleep()
+            this.world.addBody(this.bullet[i])
+        }
 
         const leftFrontAxis = new CANNON.Vec3(1, 0, 0)
         const rightFrontAxis = new CANNON.Vec3(1, 0, 0)
@@ -234,18 +262,47 @@ export default class Car {
         this.wheelRBBody.quaternion.copy(q)
     }
 
+    getNextBulletId(): number {
+        this.bulletId += 1
+        if (this.bulletId > 2) {
+            this.bulletId = 0
+        }
+        this.lastBulletCounter[this.bulletId] += 1
+        
+        return this.bulletId
+    }
+
+    explode(v: CANNON.Vec3) {
+        //removes all constraints for this car so that parts separate
+        this.world.removeConstraint(this.constraintLF)
+        this.world.removeConstraint(this.constraintRF)
+        this.world.removeConstraint(this.constraintLB)
+        this.world.removeConstraint(this.constraintRB)
+        this.enabled = false
+
+        this.wheelLFBody.velocity = v.scale(Math.random() * 100)
+        this.wheelRFBody.velocity = v.scale(Math.random() * 100)
+        this.wheelLBBody.velocity = v.scale(Math.random() * 100)
+        this.wheelRBBody.velocity = v.scale(Math.random() * 100)
+        this.frame.velocity = v.scale(Math.random() * 100)
+    }
+
     dispose() {
         this.world.removeConstraint(this.constraintLF)
         this.world.removeConstraint(this.constraintRF)
         this.world.removeConstraint(this.constraintLB)
         this.world.removeConstraint(this.constraintRB)
-        this.world.removeBody(this.bullet)
+        for (let i = 0; i < 3; i++) {
+            this.world.removeBody(this.bullet[i])
+        }
         this.world.removeBody(this.turretBody)
         this.world.removeBody(this.wheelLFBody)
         this.world.removeBody(this.wheelRFBody)
         this.world.removeBody(this.wheelLBBody)
         this.world.removeBody(this.wheelRBBody)
         this.world.removeBody(this.frame)
+        this.partIds = []
+        console.log('disposed car')
     }
 
     update() {
@@ -257,6 +314,8 @@ export default class Car {
         // this.player.dq.y = this.turretBody.quaternion.y
         // this.player.dq.z = this.turretBody.quaternion.z
         // this.player.dq.w = this.turretBody.quaternion.w
+
+        this.player.s = this.score
 
         this.player.p.x = this.frame.position.x
         this.player.p.y = this.frame.position.y
@@ -304,18 +363,22 @@ export default class Car {
         this.player.cq.z = this.camQuat.z
         this.player.cq.w = this.camQuat.w
 
-        this.player.b[0].p.x = this.bullet.position.x
-        this.player.b[0].p.y = this.bullet.position.y
-        this.player.b[0].p.z = this.bullet.position.z
-        this.player.b[0].q.x = this.bullet.quaternion.x
-        this.player.b[0].q.y = this.bullet.quaternion.y
-        this.player.b[0].q.z = this.bullet.quaternion.z
-        this.player.b[0].q.w = this.bullet.quaternion.w
-        this.player.b[0].c = this.lastBulletCounter
+        for (let i = 0; i < 3; i++) {
+            this.player.b[i].p.x = this.bullet[i].position.x
+            this.player.b[i].p.y = this.bullet[i].position.y
+            this.player.b[i].p.z = this.bullet[i].position.z
+            this.player.b[i].q.x = this.bullet[i].quaternion.x
+            this.player.b[i].q.y = this.bullet[i].quaternion.y
+            this.player.b[i].q.z = this.bullet[i].quaternion.z
+            this.player.b[i].q.w = this.bullet[i].quaternion.w
+            this.player.b[i].c = this.lastBulletCounter[i]
+        }
 
         this.constraintLB.setMotorSpeed(this.forwardVelocity)
         this.constraintRB.setMotorSpeed(this.forwardVelocity)
         this.constraintLF.axisA.z = this.rightVelocity
         this.constraintRF.axisA.z = this.rightVelocity
+
+        this.player.v = this.forwardVelocity
     }
 }

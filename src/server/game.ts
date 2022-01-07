@@ -6,23 +6,16 @@ import Physics from './physics'
 //import Car from './car'
 
 export default class Game {
-    //public gameClock = 1
-    //public gamePhase = 0 //0=closed, 1=open
-    //public gameId: number = 0
-    //public gameWinner: string = ''
-    // public resentWinners: any[] = [
-    //     { screenName: 'SeanWasEre', time: 1 },
-    //     { screenName: 'SeanWasEre', time: 2 },
-    //     { screenName: 'SeanWasEre', time: 3 },
-    //     { screenName: 'SeanWasEre', time: 4 },
-    //     { screenName: 'SeanWasEre', time: 5 },
-    //     { screenName: 'SeanWasEre', time: 6 },
-    //     { screenName: 'SeanWasEre', time: 7 },
-    //     { screenName: 'SeanWasEre', time: 8 },
-    //     { screenName: 'SeanWasEre', time: 9 },
-    //     { screenName: 'SeanWasEre', time: 10 },
-    // ]
-
+    public gameClock = 1
+    public gamePhase = 0 //0=closed, 1=open
+    public gameId: number = 0
+    public gameWinner: string = ''
+    public resentWinners = [
+        { screenName: 'SeanWasEre', score: 10 },
+        { screenName: 'SeanWasEre', score: 20 },
+        { screenName: 'SeanWasEre', score: 30 },
+    ]
+    winnersCalculated = false
     //public jewel: any = {}
 
     public players: { [id: string]: Player } = {}
@@ -34,10 +27,13 @@ export default class Game {
 
     private playerCount = 0
 
+    io: any
     constructor(io: any) {
+        this.io = io
         this.physics = new Physics(io)
+        //this.physics.regenerateObstacles(this.obstacles)
 
-        io.on('connection', (socket: any) => {
+        this.io.on('connection', (socket: any) => {
             this.players[socket.id] = new Player()
             //this.players[socket.id].canJump = true
             this.players[socket.id].screenName = 'Guest' + this.playerCount++
@@ -47,8 +43,8 @@ export default class Game {
             socket.emit(
                 'joined',
                 socket.id,
-                this.players[socket.id].screenName
-                //this.resentWinners
+                this.players[socket.id].screenName,
+                this.resentWinners
             )
 
             this.physics.createCar(socket, this.players[socket.id])
@@ -95,27 +91,28 @@ export default class Game {
                     car.thrusting = false
                     car.steering = false
                     if (message.keyMap['w'] || message.keyMap['ArrowUp']) {
-                        if (car.forwardVelocity < 25.0) car.forwardVelocity += 0.5
+                        if (car.forwardVelocity <= 40.0) car.forwardVelocity += 0.75
                         car.thrusting = true
                     }
                     if (message.keyMap['s'] || message.keyMap['ArrowDown']) {
-                        if (car.forwardVelocity > -10.0) car.forwardVelocity -= 0.5
+                        if (car.forwardVelocity >= -20.0)
+                            car.forwardVelocity -= 0.75
                         car.thrusting = true
                     }
                     if (message.keyMap['a'] || message.keyMap['ArrowLeft']) {
-                        if (car.rightVelocity > -0.5) car.rightVelocity -= 0.05
+                        if (car.rightVelocity >= -0.6) car.rightVelocity -= 0.1
                         car.steering = true
                     }
                     if (message.keyMap['d'] || message.keyMap['ArrowRight']) {
-                        if (car.rightVelocity < 0.5) car.rightVelocity += 0.05
+                        if (car.rightVelocity <= 0.6) car.rightVelocity += 0.1
                         car.steering = true
                     }
                     if (message.keyMap[' ']) {
                         if (car.forwardVelocity > 0) {
-                            car.forwardVelocity -= 1
+                            car.forwardVelocity -= 2
                         }
                         if (car.forwardVelocity < 0) {
-                            car.forwardVelocity += 1
+                            car.forwardVelocity += 2
                         }
                     }
 
@@ -150,16 +147,14 @@ export default class Game {
 
                 this.physics.shoot(socket.id)
             })
-
-            this.physics.generateObstacles(this.obstacles)
         })
 
         setInterval(() => {
-            io.emit('gameData', {
+            this.io.emit('gameData', {
                 //earthQuat: this.physics.earthBody.quaternion,
-                // gameId: this.gameId,
-                // gamePhase: this.gamePhase,
-                // gameClock: this.gameClock,
+                gameId: this.gameId,
+                gamePhase: this.gamePhase,
+                gameClock: this.gameClock,
                 players: this.players,
                 //(this.cars),
                 obstacles: this.obstacles,
@@ -199,37 +194,77 @@ export default class Game {
             // }
         }, 25)
 
-        // setInterval(() => {
-        //     // this.gameClock -= 1
-        //     // if (this.gameClock < -5) {
-        //     //     //generate new game
-        //     //     //this.physics.regenerateObstacles(this.obstacles)
-        //     //     //this.physics.jewelBody.wakeUp()
-        //     //     this.gamePhase = 1
-        //     //     this.gameClock = 10
-        //     //     this.gameWinner = ''
-        //     //     this.gameId += 1
-        //     //     io.emit('newGame', {})
-        //     // } else if (this.gameClock < 0) {
-        //     //     this.gamePhase = 0
-        //     //     // this.physics.jewelBody.position.x = Math.random() * 50 - 25
-        //     //     // this.physics.jewelBody.position.y = Math.random() * 20 + 20
-        //     //     // this.physics.jewelBody.position.z = Math.random() * 50 - 25
-        //     //     // this.physics.jewelBody.velocity.set(0, 0, 0)
-        //     //     // this.physics.jewelBody.angularVelocity.set(0, 0, 0)
-        //     //     // this.physics.jewelBody.sleep()
-        //     // }
+        setInterval(() => {
+            this.gameClock -= 1
+            if (this.gameClock < -5) {
+                //generate new game
+                this.physics.regenerateObstacles(this.obstacles)
+                //this.physics.jewelBody.wakeUp()
+                this.gamePhase = 1
+                this.gameClock = 60
+                this.gameWinner = ''
+                this.gameId += 1
+                this.winnersCalculated = false
+                Object.keys(this.physics.cars).forEach((c) => {
+                    this.physics.cars[c].score = 0
+                })
+                this.io.emit('newGame', {})
+            } else if (this.gameClock < 0) {
+                this.gamePhase = 0
+                if (!this.winnersCalculated) {
+                    this.recalcWinnersTable()
+                }
+                // this.physics.jewelBody.position.x = Math.random() * 50 - 25
+                // this.physics.jewelBody.position.y = Math.random() * 20 + 20
+                // this.physics.jewelBody.position.z = Math.random() * 50 - 25
+                // this.physics.jewelBody.velocity.set(0, 0, 0)
+                // this.physics.jewelBody.angularVelocity.set(0, 0, 0)
+                // this.physics.jewelBody.sleep()
+            }
 
-        //     //reset out of bounds players
-        //     // Object.keys(this.players).forEach((p) => {
-        //     //     if (this.physics.bodies[p].position.y < -25) {
-        //     //         this.physics.bodies[p].position.x = Math.random() * 50 - 25
-        //     //         this.physics.bodies[p].position.y = 10
-        //     //         this.physics.bodies[p].position.z = Math.random() * 50 - 25
-        //     //         this.physics.bodies[p].velocity.set(0, 0, 0)
-        //     //         this.physics.bodies[p].angularVelocity.set(0, 0, 0)
-        //     //     }
-        //     // })
-        // }, 1000)
+            //reset out of bounds players
+            // Object.keys(this.players).forEach((p) => {
+            //     if (this.physics.bodies[p].position.y < -25) {
+            //         this.physics.bodies[p].position.x = Math.random() * 50 - 25
+            //         this.physics.bodies[p].position.y = 10
+            //         this.physics.bodies[p].position.z = Math.random() * 50 - 25
+            //         this.physics.bodies[p].velocity.set(0, 0, 0)
+            //         this.physics.bodies[p].angularVelocity.set(0, 0, 0)
+            //     }
+            // })
+        }, 1000)
+    }
+
+    recalcWinnersTable = () => {
+        let highestScore = 0
+        let highestScorePlayer: Player = new Player()
+        Object.keys(this.players).forEach((p) => {
+            console.log('score = ' + this.players[p].s)
+            if (this.players[p].s > highestScore) {
+                highestScore = this.players[p].s
+                highestScorePlayer = this.players[p]
+            }
+        })
+
+        if (highestScore > 0) {
+            this.gameWinner = highestScorePlayer.screenName
+            this.resentWinners.push({
+                screenName: highestScorePlayer.screenName,
+                score: highestScore,
+            })
+
+            while (this.resentWinners.length > 10) {
+                this.resentWinners.shift()
+            }
+
+            this.io.emit(
+                'winner',
+                //this.physics.cars[p].position,
+                highestScorePlayer.screenName,
+                this.resentWinners
+            )
+        }
+
+        this.winnersCalculated = true
     }
 }

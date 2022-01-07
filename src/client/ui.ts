@@ -3,11 +3,11 @@ import Game from './game'
 
 export default class UI {
     public menuActive: boolean
-    //public recentWinnersTable: HTMLTableElement
+    public recentWinnersTable: HTMLTableElement
     public startButton: HTMLButtonElement
     public menuPanel: HTMLDivElement
-    // public newGameAlert: HTMLDivElement
-    // public gameClosedAlert: HTMLDivElement
+    public newGameAlert: HTMLDivElement
+    public gameClosedAlert: HTMLDivElement
 
     // public xycontrollerLook?: XYController
     // public xycontrollerMove?: XYController
@@ -21,19 +21,19 @@ export default class UI {
         this.game = game
         this.rendererDomElement = rendererDomElement
         this.menuActive = true
-        // this.recentWinnersTable = document.getElementById(
-        //     'recentWinnersTable'
-        // ) as HTMLTableElement
+        this.recentWinnersTable = document.getElementById(
+            'recentWinnersTable'
+        ) as HTMLTableElement
         this.startButton = document.getElementById(
             'startButton'
         ) as HTMLButtonElement
         this.menuPanel = document.getElementById('menuPanel') as HTMLDivElement
-        // this.newGameAlert = document.getElementById(
-        //     'newGameAlert'
-        // ) as HTMLDivElement
-        // this.gameClosedAlert = document.getElementById(
-        //     'gameClosedAlert'
-        // ) as HTMLDivElement
+        this.newGameAlert = document.getElementById(
+            'newGameAlert'
+        ) as HTMLDivElement
+        this.gameClosedAlert = document.getElementById(
+            'gameClosedAlert'
+        ) as HTMLDivElement
 
         this.startButton.addEventListener(
             'click',
@@ -84,21 +84,21 @@ export default class UI {
         })
     }
 
-    // updateScoreBoard = (recentWinners: []) => {
-    //     const rows = this.recentWinnersTable.rows
-    //     var i = rows.length
-    //     while (--i) {
-    //         this.recentWinnersTable.deleteRow(i)
-    //     }
+    updateScoreBoard = (recentWinners: []) => {
+        const rows = this.recentWinnersTable.rows
+        var i = rows.length
+        while (--i) {
+            this.recentWinnersTable.deleteRow(i)
+        }
 
-    //     recentWinners.forEach((w: any) => {
-    //         const row = this.recentWinnersTable.insertRow()
-    //         const cell0 = row.insertCell(0)
-    //         cell0.appendChild(document.createTextNode(w.screenName))
-    //         const cell1 = row.insertCell(1)
-    //         cell1.appendChild(document.createTextNode(w.time))
-    //     })
-    // }
+        recentWinners.forEach((w: any) => {
+            const row = this.recentWinnersTable.insertRow()
+            const cell0 = row.insertCell(0)
+            cell0.appendChild(document.createTextNode(w.screenName))
+            const cell1 = row.insertCell(1)
+            cell1.appendChild(document.createTextNode(w.score))
+        })
+    }
 
     lockChangeAlert = () => {
         if (
@@ -120,8 +120,12 @@ export default class UI {
             document.addEventListener('keyup', this.onDocumentKey, false)
 
             this.menuPanel.style.display = 'none'
-            //this.recentWinnersTable.style.display = 'block'
+            this.recentWinnersTable.style.display = 'block'
             this.menuActive = false
+
+            Object.keys(this.game.cars).forEach((c) => {
+                this.game.cars[c].carSound.play()
+            })
         } else {
             this.rendererDomElement.removeEventListener(
                 'mousemove',
@@ -137,21 +141,26 @@ export default class UI {
             document.removeEventListener('keydown', this.onDocumentKey, false)
             document.removeEventListener('keyup', this.onDocumentKey, false)
             this.menuPanel.style.display = 'block'
-            //this.recentWinnersTable.style.display = 'none'
-            //this.gameClosedAlert.style.display = 'none'
-            //this.newGameAlert.style.display = 'none'
+            this.recentWinnersTable.style.display = 'none'
+            this.gameClosedAlert.style.display = 'none'
+            this.newGameAlert.style.display = 'none'
             this.menuActive = true
+            Object.keys(this.game.cars).forEach((c) => {
+                this.game.cars[c].carSound.stop()
+            })
         }
     }
 
     onClick = () => {
         this.game.socket.emit('shoot')
+        
         // this.theCarGame.explosions.forEach((e) => {
         //     e.explode(this.theCarGame.cars[this.theCarGame.myId].targetPosFrame)
         // })
         return false
     }
 
+    camAngle = 0
     onDocumentMouseMove = (e: MouseEvent) => {
         // this.theBallGame.cameraRotationXZOffset +=
         //     e.movementX * this.theBallGame.sensitivity
@@ -163,11 +172,14 @@ export default class UI {
         // )
         // return false
         this.game.chaseCamPivot.rotation.y -= e.movementX * 0.0025
-        // this.theBallGame.chaseCamPivot.rotation.x -= e.movementY * 0.005
-        // this.theBallGame.chaseCamPivot.rotation.x = Math.max(
-        //     Math.min(chaseCamPivot.rotation.x, 0),
-        //     -1
-        // )
+
+        this.camAngle += e.movementY * 0.002
+        //console.log(this.camAngle)
+        // //this.game.chaseCamPivot.rotation.z += e.movementY * 0.005
+        this.camAngle = Math.max(Math.min(this.camAngle, 0.5), -0.4)
+        this.game.chaseCamPivot.position.y = this.camAngle * 4
+        this.game.chaseCam.rotation.x = -this.camAngle
+
         return false
     }
 

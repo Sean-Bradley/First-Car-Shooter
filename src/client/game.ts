@@ -13,7 +13,7 @@ import {
 } from 'three/examples/jsm/objects/Lensflare.js'
 
 export default class Game {
-    //public gamePhase: number = 0
+    public gamePhase: number = 0
     private timestamp = 0
 
     //public players: { [id: string]: THREE.Mesh } = {}
@@ -76,11 +76,16 @@ export default class Game {
 
     earthSphere = new THREE.Group()
 
+    listener: THREE.AudioListener
+    //carSound: THREE.PositionalAudio
+    explosionSound: THREE.PositionalAudio
+
     constructor(
         socket: Socket,
         scene: THREE.Scene,
         renderer: THREE.WebGLRenderer,
-        camera: THREE.PerspectiveCamera
+        camera: THREE.PerspectiveCamera,
+        listener: THREE.AudioListener
     ) {
         // if (
         //     /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
@@ -95,6 +100,7 @@ export default class Game {
         this.renderer = renderer
         this.camera = camera
         this.socket = socket
+        this.listener = listener
 
         // this.sky = new Sky()
         // this.sky.scale.setScalar(450000)
@@ -153,6 +159,14 @@ export default class Game {
             new Explosion(new THREE.Color(0x0000ff), scene),
         ]
 
+        const audioLoader = new THREE.AudioLoader()
+        const explosionSound = new THREE.PositionalAudio(this.listener)
+        audioLoader.load('sounds/explosion.ogg', (buffer) => {
+            explosionSound.setBuffer(buffer)
+            explosionSound.setRefDistance(20)
+        })
+        this.explosionSound = explosionSound
+
         const earthTexture = new THREE.TextureLoader().load(
             'img/worldColour.5400x2700.jpg'
         )
@@ -200,7 +214,9 @@ export default class Game {
                 scene.remove(this.cars[p].wheelRFMesh)
                 scene.remove(this.cars[p].wheelLBMesh)
                 scene.remove(this.cars[p].wheelRBMesh)
-                scene.remove(this.cars[p].bullet)
+                for (let i = 0; i < 3; i++) {
+                    scene.remove(this.cars[p].bullet[i])
+                }
                 delete this.cars[p]
             })
         })
@@ -211,20 +227,22 @@ export default class Game {
             ).value = screenName
 
             this.updateInterval = setInterval(() => {
-                this.cars[this.myId].turretPivot.getWorldPosition(this.tmpVec)
-                //console.log(this.cars[this.myId].turretMesh.quaternion.x)
+                if (this.cars[this.myId].carFullySetup) {
+                    this.cars[this.myId].turretPivot.getWorldPosition(this.tmpVec)
 
-                socket.emit('update', {
-                    t: Date.now(),
-                    keyMap: this.ui.keyMap,
-                    cq: this.camQuat,
-                    tp: this.tmpVec,
-                    tq: this.cars[this.myId].turretMesh.quaternion,
-                    //vec: this.vec,
-                    //spc: this.spcKey,
-                }) //, p: myObject3D.position, r: myObject3D.rotation })
+                    socket.emit('update', {
+                        t: Date.now(),
+                        keyMap: this.ui.keyMap,
+                        cq: this.camQuat,
+                        tp: this.tmpVec,
+                        tq: this.cars[this.myId].turretMesh.quaternion,
+                        //vec: this.vec,
+                        //spc: this.spcKey,
+                    }) //, p: myObject3D.position, r: myObject3D.rotation })
+                }
+                //console.log(this.cars[this.myId].turretMesh.quaternion.x)
             }, 50)
-            //this.ui.updateScoreBoard(recentWinners)
+            this.ui.updateScoreBoard(recentWinners)
         })
 
         socket.on('explosion', (p: THREE.Vector3) => {
@@ -232,37 +250,40 @@ export default class Game {
             this.explosions.forEach((e) => {
                 e.explode(p)
             })
+            this.explosionSound.position.copy(p)
+            if (this.explosionSound.isPlaying) {
+                this.explosionSound.stop()
+            }
+            this.explosionSound.play()
+            console.log('playing explosion sound')
         })
 
-        // socket.on(
-        //     'winner',
-        //     (position: THREE.Vector3, screenName: string, recentWinners: []) => {
-        //         //this.jewel.visible = false
-        //         this.explosions.forEach((e) => {
-        //             e.explode(position)
-        //         })
-        //         ;(
-        //             document.getElementById('winnerLabel') as HTMLDivElement
-        //         ).style.display = 'block'
-        //         ;(
-        //             document.getElementById('winnerScreenName') as HTMLDivElement
-        //         ).innerHTML = screenName
-        //         this.ui.updateScoreBoard(recentWinners)
-        //     }
-        // )
+        socket.on('winner', (screenName: string, recentWinners: []) => {
+            //this.jewel.visible = false
+            // this.explosions.forEach((e) => {
+            //     e.explode(position)
+            // })
+            ;(
+                document.getElementById('winnerLabel') as HTMLDivElement
+            ).style.display = 'block'
+            ;(
+                document.getElementById('winnerScreenName') as HTMLDivElement
+            ).innerHTML = screenName
+            this.ui.updateScoreBoard(recentWinners)
+        })
 
-        // socket.on('newGame', () => {
-        //     // if (this.jewel) {
-        //     //     this.jewel.visible = true
-        //     // }
-        //     this.ui.gameClosedAlert.style.display = 'none'
-        //     if (!this.ui.menuActive) {
-        //         this.ui.newGameAlert.style.display = 'block'
-        //         setTimeout(() => {
-        //             this.ui.newGameAlert.style.display = 'none'
-        //         }, 2000)
-        //     }
-        // })
+        socket.on('newGame', () => {
+            // if (this.jewel) {
+            //     this.jewel.visible = true
+            // }
+            this.ui.gameClosedAlert.style.display = 'none'
+            if (!this.ui.menuActive) {
+                this.ui.newGameAlert.style.display = 'block'
+                setTimeout(() => {
+                    this.ui.newGameAlert.style.display = 'none'
+                }, 2000)
+            }
+        })
 
         socket.on('removePlayer', (p: string) => {
             scene.remove(this.cars[p].frame)
@@ -272,7 +293,9 @@ export default class Game {
             scene.remove(this.cars[p].wheelRFMesh)
             scene.remove(this.cars[p].wheelLBMesh)
             scene.remove(this.cars[p].wheelRBMesh)
-            scene.remove(this.cars[p].bullet)
+            for (let i = 0; i < 3; i++) {
+                scene.remove(this.cars[p].bullet[i])
+            }
             delete this.cars[p]
         })
 
@@ -283,58 +306,61 @@ export default class Game {
             //     0.1
             // )
 
-            // if (gameData.gameClock >= 0) {
-            //     if (this.gamePhase != 1) {
-            //         console.log('new game')
-            //         this.gamePhase = 1
-            //         ;(
-            //             document.getElementById('gameClock') as HTMLDivElement
-            //         ).style.display = 'block'
-            //         // if (this.jewel) {
-            //         //     this.jewel.visible = true
-            //         // }
-            //         ;(
-            //             document.getElementById('winnerLabel') as HTMLDivElement
-            //         ).style.display = 'none'
-            //         ;(
-            //             document.getElementById(
-            //                 'winnerScreenName'
-            //             ) as HTMLDivElement
-            //         ).innerHTML = ''
-            //     }
-            //     ;(
-            //         document.getElementById('gameClock') as HTMLDivElement
-            //     ).innerText = Math.floor(gameData.gameClock).toString()
-            // } else {
-            //     // if (this.jewel) {
-            //     //     this.jewel.visible = false
-            //     // }
-            //     ;(
-            //         document.getElementById('gameClock') as HTMLDivElement
-            //     ).style.display = 'none'
-            //     if (
-            //         !this.ui.menuActive &&
-            //         gameData.gameClock >= -3 &&
-            //         this.gamePhase === 1
-            //     ) {
-            //         console.log('game closed')
-            //         this.ui.gameClosedAlert.style.display = 'block'
-            //         setTimeout(() => {
-            //             this.ui.gameClosedAlert.style.display = 'none'
-            //         }, 4000)
-            //     }
-            //     this.gamePhase = 0
-            // }
+            if (gameData.gameClock >= 0) {
+                if (this.gamePhase != 1) {
+                    console.log('new game')
+                    this.gamePhase = 1
+                    ;(
+                        document.getElementById('gameClock') as HTMLDivElement
+                    ).style.display = 'block'
+                    // if (this.jewel) {
+                    //     this.jewel.visible = true
+                    // }
+                    ;(
+                        document.getElementById('winnerLabel') as HTMLDivElement
+                    ).style.display = 'none'
+                    ;(
+                        document.getElementById(
+                            'winnerScreenName'
+                        ) as HTMLDivElement
+                    ).innerHTML = ''
+                }
+                ;(
+                    document.getElementById('gameClock') as HTMLDivElement
+                ).innerText = Math.floor(gameData.gameClock).toString()
+            } else {
+                // if (this.jewel) {
+                //     this.jewel.visible = false
+                // }
+                ;(
+                    document.getElementById('gameClock') as HTMLDivElement
+                ).style.display = 'none'
+                if (
+                    !this.ui.menuActive &&
+                    gameData.gameClock >= -3 &&
+                    this.gamePhase === 1
+                ) {
+                    console.log('game closed')
+                    this.ui.gameClosedAlert.style.display = 'block'
+                    setTimeout(() => {
+                        this.ui.gameClosedAlert.style.display = 'none'
+                    }, 4000)
+                }
+                this.gamePhase = 0
+            }
+
             let pingStatsHtml = 'Socket Ping Stats<br/><br/>'
             Object.keys(gameData.players).forEach((p) => {
                 this.timestamp = Date.now()
                 pingStatsHtml +=
                     gameData.players[p].screenName +
                     ' ' +
+                    gameData.players[p].s +
+                    ' ' +
                     (this.timestamp - gameData.players[p].t) +
                     'ms<br/>'
                 if (!this.cars[p]) {
-                    this.cars[p] = new Car(this.scene)
+                    this.cars[p] = new Car(this.scene, this.listener)
                     if (p === this.myId) {
                         this.chaseCam.position.set(0, 1.5, 4)
                         this.chaseCamPivot.add(this.chaseCam)
@@ -346,8 +372,14 @@ export default class Game {
                 } else {
                     if (gameData.players[p].p) {
                         //if (p === this.myId) {
+                       
+                        //}
 
                         this.cars[p].updateData(gameData.players[p])
+
+                        //console.log(gameData.players[p].v / 40)
+
+                        //this.cars[p].carSound.play()
                         // } else {
                         //     this.cars[p].update(gameData.players[p])
                         // }
@@ -422,6 +454,8 @@ export default class Game {
     public update = () => {
         this.chaseCam.getWorldPosition(this.camPos)
         this.camera.position.lerpVectors(this.camera.position, this.camPos, 0.2)
+
+        //this.chaseCam.lookAt(this.cars[this.myId].turretMesh.position)
         this.chaseCam.getWorldQuaternion(this.camQuat)
         this.camera.quaternion.slerp(this.camQuat, 0.2)
 

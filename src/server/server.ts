@@ -17,7 +17,9 @@ import Game from './game'
 
 dotenv.config()
 
-const port = process.env.PORT || 3008
+console.log('process.env.PORT = ' + process.env.PORT)
+
+const port = process.env.PORT || 3000
 
 class App {
     private server: http.Server
