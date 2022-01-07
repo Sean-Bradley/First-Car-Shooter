@@ -11,12 +11,14 @@ Object.defineProperty(exports, "__esModule", { value: true });
 // `tsc -p ./src/server`  (this compiles ./src/server/server.ts into ./dist/server/server.js)
 // `npm start            (this starts nodejs with express and serves the ./dist/client folder)
 // visit http://127.0.0.1:3000
+const dotenv_1 = __importDefault(require("dotenv"));
 const express_1 = __importDefault(require("express"));
 const path_1 = __importDefault(require("path"));
 const http_1 = __importDefault(require("http"));
 const socket_io_1 = __importDefault(require("socket.io"));
 const game_1 = __importDefault(require("./game"));
-const port = 3000;
+dotenv_1.default.config();
+const port = process.env.PORT || 3000;
 class App {
     constructor(port) {
         this.port = port;

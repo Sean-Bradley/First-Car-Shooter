@@ -8,13 +8,16 @@
 // `npm start            (this starts nodejs with express and serves the ./dist/client folder)
 // visit http://127.0.0.1:3000
 
+import dotenv from 'dotenv'
 import express from 'express'
 import path from 'path'
 import http from 'http'
 import socketIO from 'socket.io'
 import Game from './game'
 
-const port: number = 3000
+dotenv.config()
+
+const port = process.env.PORT || 3000
 
 class App {
     private server: http.Server
@@ -41,4 +44,4 @@ class App {
     }
 }
 
-new App(port).Start()
+new App(port as number).Start()
