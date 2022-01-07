@@ -15,7 +15,7 @@ import http from 'http'
 import socketIO from 'socket.io'
 import Game from './game'
 
-dotenv.config()
+dotenv.config({path: __dirname +'/.env'})
 
 console.log('process.env.PORT = ' + process.env.PORT)
 
