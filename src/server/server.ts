@@ -19,7 +19,7 @@ dotenv.config({path: __dirname +'/.env'})
 
 console.log('process.env.PORT = ' + process.env.PORT)
 
-const port = process.env.PORT || 8080
+const port = process.env.PORT || 3008
 
 class App {
     private server: http.Server

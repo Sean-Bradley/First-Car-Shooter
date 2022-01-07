@@ -17,9 +17,9 @@ const path_1 = __importDefault(require("path"));
 const http_1 = __importDefault(require("http"));
 const socket_io_1 = __importDefault(require("socket.io"));
 const game_1 = __importDefault(require("./game"));
-dotenv_1.default.config();
+dotenv_1.default.config({ path: __dirname + '/.env' });
 console.log('process.env.PORT = ' + process.env.PORT);
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 3008;
 class App {
     constructor(port) {
         this.port = port;
