@@ -1,0 +1,12 @@
+{
+    "compilerOptions": {
+        "target": "ES2019",
+        "module": "CommonJS",
+        "outDir": "../../dist/server",
+        "esModuleInterop": true,
+        "moduleResolution": "node",
+        "strict": true,
+        "allowJs": true
+    },
+    "include": ["**/*.ts"]
+}
