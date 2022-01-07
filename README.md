@@ -2,7 +2,7 @@
 
 Multiplayer First Car Shooter (FCS) written in Three.js with server side CannonJS physics and SocketIO
 
-> Live Demo : [https://fcs.sbcode.net](https://fcs.sbcode.net)
+Playable Demo : [https://fcs.sbcode.net](https://fcs.sbcode.net)
 
 ![Screen Grab](docs/screen-grab.jpg)
 
