@@ -42,6 +42,8 @@ class Physics {
         this.io = io;
         //this.theCarGame = theCarGame
         this.world.gravity.set(0, -1, 0);
+        // console.log(
+        //;(this.world.solver as CANNON.GSSolver).tolerance = .00001
         this.groundMaterial = new CANNON.Material('groundMaterial');
         this.wheelMaterial = new CANNON.Material('wheelMaterial');
         this.wheelGroundContactMaterial = new CANNON.ContactMaterial(this.wheelMaterial, this.groundMaterial, {
@@ -133,6 +135,16 @@ class Physics {
                 // console.log(e.contact.bi.id + ' ' + e.contact.bj.id)
             });
         }
+        //logging how much a wheel slides
+        this.cars[socket.id].frame.addEventListener('collide', (e) => {
+            var relativeVelocity = e.contact.getImpactVelocityAlongNormal();
+            console.log(Math.abs(relativeVelocity));
+            // if(Math.abs(relativeVelocity) > 10){
+            //     // More energy
+            // } else {
+            //     // Less energy
+            // }
+        });
     }
     shoot(id) {
         if (this.cars[id].enabled) {

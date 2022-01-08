@@ -104,7 +104,7 @@ export default class Car {
         const carSound = new THREE.PositionalAudio(this.listener)
         audioLoader.load('sounds/engine.wav', (buffer) => {
             carSound.setBuffer(buffer)
-            carSound.setVolume(.5)
+            carSound.setVolume(0.5)
         })
         this.carSound = carSound
 
@@ -114,8 +114,6 @@ export default class Car {
             shootSound.setVolume(2)
         })
         this.shootSound = shootSound
-
-        
 
         loader.load(
             'models/frame.glb',
@@ -145,6 +143,8 @@ export default class Car {
                         scene.add(this.wheelRFMesh)
                         scene.add(this.wheelLBMesh)
                         scene.add(this.wheelRBMesh)
+
+                        
                     },
                     (xhr) => {
                         console.log((xhr.loaded / xhr.total) * 100 + '% loaded')
@@ -161,32 +161,6 @@ export default class Car {
                 console.log(error)
             }
         )
-        // const wheelLFGeometry = new THREE.CylinderGeometry(0.4, 0.4, 0.33, 16)
-        // wheelLFGeometry.rotateZ(Math.PI / 2)
-        // this.wheelLFMesh = new THREE.Mesh(wheelLFGeometry, phongMaterial)
-        // this.wheelLFMesh.castShadow = true
-        // scene.add(this.wheelLFMesh)
-
-        // //front right wheel
-        // const wheelRFGeometry = new THREE.CylinderGeometry(0.4, 0.4, 0.33, 16)
-        // wheelRFGeometry.rotateZ(Math.PI / 2)
-        // this.wheelRFMesh = new THREE.Mesh(wheelRFGeometry, phongMaterial)
-        // this.wheelRFMesh.castShadow = true
-        // scene.add(this.wheelRFMesh)
-
-        // //back left wheel
-        // const wheelLBGeometry = new THREE.CylinderGeometry(0.4, 0.4, 0.33, 16)
-        // wheelLBGeometry.rotateZ(Math.PI / 2)
-        // this.wheelLBMesh = new THREE.Mesh(wheelLBGeometry, phongMaterial)
-        // this.wheelLBMesh.castShadow = true
-        // scene.add(this.wheelLBMesh)
-
-        // //back right wheel
-        // const wheelRBGeometry = new THREE.CylinderGeometry(0.4, 0.4, 0.33, 16)
-        // wheelRBGeometry.rotateZ(Math.PI / 2)
-        // this.wheelRBMesh = new THREE.Mesh(wheelRBGeometry, phongMaterial)
-        // this.wheelRBMesh.castShadow = true
-        // scene.add(this.wheelRBMesh)
 
         //bullets
         for (let i = 0; i < 3; i++) {
@@ -271,11 +245,10 @@ export default class Car {
                 this.bullet[i].quaternion.copy(this.turretMesh.quaternion)
 
                 //
-                if(this.shootSound.isPlaying){
+                if (this.shootSound.isPlaying) {
                     this.shootSound.stop()
                 }
                 this.shootSound.play()
-
             }
             this.targetPosBullet[i].set(
                 gameData.b[i].p.x,
@@ -290,9 +263,7 @@ export default class Car {
             )
         }
 
-        this.carSound.setPlaybackRate(
-            Math.abs(gameData.v / 50) + Math.random() / 9
-        )
+        this.carSound.setPlaybackRate(Math.abs(gameData.v / 50) + Math.random() / 9)
 
         // //debug cannon shape
         // this.debugMesh.position.set(gameData.dp.x, gameData.dp.y, gameData.dp.z)

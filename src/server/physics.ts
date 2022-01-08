@@ -12,6 +12,7 @@ import { Socket } from 'socket.io'
 
 export default class Physics {
     world = new CANNON.World()
+
     obstacles: { [id: string]: CANNON.Body } = {}
 
     cars: { [id: string]: Car } = {}
@@ -32,6 +33,8 @@ export default class Physics {
         //this.theCarGame = theCarGame
 
         this.world.gravity.set(0, -1, 0)
+        // console.log(
+        //;(this.world.solver as CANNON.GSSolver).tolerance = .00001
 
         this.groundMaterial = new CANNON.Material('groundMaterial')
         this.wheelMaterial = new CANNON.Material('wheelMaterial')
@@ -158,6 +161,19 @@ export default class Physics {
                 // console.log(e.contact.bi.id + ' ' + e.contact.bj.id)
             })
         }
+
+        //logging how much a wheel slides
+        this.cars[socket.id].frame.addEventListener('collide', (e: any) => {
+            var relativeVelocity = (
+                e.contact as CANNON.ContactEquation
+            ).getImpactVelocityAlongNormal()
+            console.log(Math.abs(relativeVelocity))
+            // if(Math.abs(relativeVelocity) > 10){
+            //     // More energy
+            // } else {
+            //     // Less energy
+            // }
+        })
     }
 
     public shoot(id: string) {

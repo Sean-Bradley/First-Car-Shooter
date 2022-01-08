@@ -15,11 +15,12 @@ import http from 'http'
 import socketIO from 'socket.io'
 import Game from './game'
 
-dotenv.config({path: __dirname +'/.env'})
+//dotenv.config({path: __dirname +'/.env'})
+dotenv.config()
 
 console.log('process.env.PORT = ' + process.env.PORT)
 
-const port = process.env.PORT || 3008
+const port = process.env.PORT || 3000
 
 class App {
     private server: http.Server
