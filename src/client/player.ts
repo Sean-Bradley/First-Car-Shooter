@@ -93,19 +93,19 @@ export default class Player {
     update(data: any) {
         this.frameMesh.position.lerp(
             new THREE.Vector3(data.p.x, data.p.y, data.p.z),
-            0.2
+            0.1
         )
         this.frameMesh.quaternion.slerp(
             new THREE.Quaternion(data.q._x, data.q._y, data.q._z, data.q._w),
-            0.2
+            0.1
         )
         this.turretMesh.position.lerp(
             new THREE.Vector3(data.tp.x, data.tp.y, data.tp.z),
-            0.2
+            0.1
         )
         this.turretMesh.quaternion.slerp(
             new THREE.Quaternion(data.tq._x, data.tq._y, data.tq._z, data.tq._w),
-            0.2
+            0.1
         )
         this.wheelLFMesh.position.lerp(
             new THREE.Vector3(data.w[0].p.x, data.w[0].p.y, data.w[0].p.z),
