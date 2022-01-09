@@ -1,9 +1,7 @@
 import * as THREE from 'three'
 import Stats from 'three/examples/jsm/libs/stats.module'
 import Game from './game'
-import { io } from 'socket.io-client'
-
-const socket = io()
+//import CannonDebugRenderer from './utils/cannonDebugRenderer'
 
 const scene = new THREE.Scene()
 
@@ -23,7 +21,8 @@ camera.position.set(0, 0, 2000)
 const listener = new THREE.AudioListener()
 camera.add(listener)
 
-const game = new Game(socket, scene, renderer, camera, listener)
+//const game = new Game(socket, scene, renderer, camera, listener, world)
+const game = new Game(scene, camera, renderer)
 
 window.addEventListener('resize', onWindowResize, false)
 function onWindowResize() {
@@ -35,10 +34,18 @@ function onWindowResize() {
 const stats = Stats()
 document.body.appendChild(stats.dom)
 
+const clock = new THREE.Clock()
+let delta
+
+//const cannonDebugRenderer = new CannonDebugRenderer(scene, game.physics.world)
+
 function animate() {
     requestAnimationFrame(animate)
 
-    game.update()
+    delta = Math.min(clock.getDelta(), 0.1)
+    game.update(delta)
+
+    //cannonDebugRenderer.update()
 
     renderer.render(scene, camera)
 

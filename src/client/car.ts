@@ -1,133 +1,106 @@
 import * as THREE from 'three'
+import * as CANNON from 'cannon-es'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader'
+import Physics from './physics'
 
 export default class Car {
-    //debugMesh: THREE.Mesh
-    frame: THREE.Object3D | THREE.Group
+    camera: THREE.PerspectiveCamera
+    physics: Physics
+    frameMesh = new THREE.Mesh()
+    turretMesh = new THREE.Mesh()
+    turretPivot = new THREE.Object3D()
+    targetQuatTurret = new THREE.Quaternion()
     wheelLFMesh = new THREE.Group()
     wheelRFMesh = new THREE.Group()
     wheelLBMesh = new THREE.Group()
     wheelRBMesh = new THREE.Group()
-    bullet: THREE.Mesh[] = []
-    turretMesh: THREE.Mesh
-    lastC = [-1, -1, -1] //used to decide if a bullet should instantly be repositioned or smoothly lerped
-
-    v = new THREE.Vector3()
-    thrusting = false
-    forwardVelocity = 0
-    rightVelocity = 0
-    matrix: number[][] = []
-    down = new THREE.Vector3(0, -1, 0)
-
-    name = ''
-
-    targetPosFrame = new THREE.Vector3()
-    targetQuatFrame = new THREE.Quaternion()
-    targetPosLFWheel = new THREE.Vector3()
-    targetQuatLFWheel = new THREE.Quaternion()
-    targetPosRFWheel = new THREE.Vector3()
-    targetQuatRFWheel = new THREE.Quaternion()
-    targetPosLBWheel = new THREE.Vector3()
-    targetQuatLBWheel = new THREE.Quaternion()
-    targetPosRBWheel = new THREE.Vector3()
-    targetQuatRBWheel = new THREE.Quaternion()
-
-    targetPosBullet = [
-        new THREE.Vector3(),
-        new THREE.Vector3(),
-        new THREE.Vector3(),
-    ]
-    targetQuatBullet = [
-        new THREE.Quaternion(),
-        new THREE.Quaternion(),
-        new THREE.Quaternion(),
-    ]
-
-    turretPivot = new THREE.Object3D()
-    targetQuatTurret = new THREE.Quaternion()
 
     tmpVec = new THREE.Vector3()
     tmpQuat = new THREE.Quaternion()
+    camPos = new THREE.Vector3()
+    camQuat = new THREE.Quaternion()
+    chaseCamPivot = new THREE.Object3D()
+    chaseCam = new THREE.Object3D()
 
-    listener: THREE.AudioListener
-    carSound: THREE.PositionalAudio
-    shootSound: THREE.PositionalAudio
+    frameBody: CANNON.Body
+    turretBody: CANNON.Body
+    wheelLFBody: CANNON.Body
+    wheelRFBody: CANNON.Body
+    wheelLBBody: CANNON.Body
+    wheelRBBody: CANNON.Body
+    constraintLF: CANNON.HingeConstraint
+    constraintRF: CANNON.HingeConstraint
+    constraintLB: CANNON.HingeConstraint
+    constraintRB: CANNON.HingeConstraint
 
-    carFullySetup = false
+    bulletMesh: THREE.Mesh[] = []
+    bulletBody: CANNON.Body[] = []
+    bulletId = -1
+    totalBullets = 0
 
-    constructor(scene: THREE.Scene, listener: THREE.AudioListener) {
-        this.listener = listener
+    public thrusting = false
+    public steering = false
+    public forwardVelocity = 0
+    public rightVelocity = 0
 
-        //const phongMaterial = new THREE.MeshNormalMaterial()
+    public partIds: number[] = []
+    public enabled = true
+
+    constructor(
+        scene: THREE.Scene,
+        camera: THREE.PerspectiveCamera,
+        physics: Physics
+    ) {
+        this.camera = camera
+        this.physics = physics
+
         const pipesMaterial = new THREE.MeshStandardMaterial()
-        //const pipesMaterial = new THREE.MeshPhysicalMaterial()
         pipesMaterial.color = new THREE.Color('#ffffff')
-        //pipesMaterial.reflectivity = 0
         pipesMaterial.refractionRatio = 0
         pipesMaterial.roughness = 0.2
         pipesMaterial.metalness = 1
-        //pipesMaterial.clearcoat = 0.15
-        //pipesMaterial.clearcoatRoughness = 0.5
 
         const loader = new GLTFLoader()
-
-        const carFrameGeometry = new THREE.BoxGeometry(1.5, 0.5, 2.5) //something temp
-        this.frame = new THREE.Mesh(carFrameGeometry, pipesMaterial)
-        this.frame.castShadow = true
-        scene.add(this.frame)
-
-        this.turretPivot = new THREE.Object3D()
-        this.turretPivot.position.y = 1.0
-        this.turretPivot.position.z = 0.5
-        this.frame.add(this.turretPivot)
-
-        //turret
-        const turretGeometry = new THREE.CylinderGeometry(0.2, 0.2, 1.5)
-        turretGeometry.rotateX(Math.PI / 2)
-        turretGeometry.translate(0, 0, -0.5)
-        this.turretMesh = new THREE.Mesh(turretGeometry, pipesMaterial)
-        this.turretMesh.castShadow = true
-        scene.add(this.turretMesh)
-
-        // //debug
-        // //const debugGeo = new THREE.CylinderGeometry(0.2, 0.2, 1.5)
-        // const debugGeo = new THREE.SphereGeometry(0.2)
-        // //debugGeo.rotateX(Math.PI / 2)
-        // debugGeo.translate(0, 0, -1.0)
-        // this.debugMesh = new THREE.Mesh(
-        //     debugGeo,
-        //     new THREE.MeshBasicMaterial({ color: 0x00ff00, wireframe: true })
-        // )
-        // scene.add(this.debugMesh)
-
-        const audioLoader = new THREE.AudioLoader()
-        const carSound = new THREE.PositionalAudio(this.listener)
-        audioLoader.load('sounds/engine.wav', (buffer) => {
-            carSound.setBuffer(buffer)
-            carSound.setVolume(0.5)
-        })
-        this.carSound = carSound
-
-        const shootSound = new THREE.PositionalAudio(this.listener)
-        audioLoader.load('sounds/rocket.ogg', (buffer) => {
-            shootSound.setBuffer(buffer)
-            shootSound.setVolume(2)
-        })
-        this.shootSound = shootSound
-
         loader.load(
             'models/frame.glb',
             (gltf) => {
-                // gltf.scene.traverse((child: THREE.Object3D) => {
-                //     console.log(child)
-                // })
-                ;(this.frame as THREE.Mesh).geometry = (
-                    gltf.scene.children[0] as THREE.Mesh
-                ).geometry
-                this.frame.castShadow = true
-                this.carSound.loop = true
-                this.frame.add(this.carSound)
-                this.frame.add(this.shootSound)
+                this.frameMesh = gltf.scene.children[0] as THREE.Mesh
+                this.frameMesh.material = pipesMaterial
+                this.frameMesh.castShadow = true
+                scene.add(this.frameMesh)
+                // this.carSound.loop = true
+                // this.frame.add(this.carSound)
+                // this.frame.add(this.shootSound)
+
+                this.turretPivot = new THREE.Object3D()
+                this.turretPivot.position.y = 1.0
+                this.turretPivot.position.z = 0.5
+                this.frameMesh.add(this.turretPivot)
+
+                const turretGeometry = new THREE.CylinderGeometry(0.2, 0.2, 1.5)
+                turretGeometry.rotateX(Math.PI / 2)
+                turretGeometry.translate(0, 0, -0.5)
+                this.turretMesh = new THREE.Mesh(turretGeometry, pipesMaterial)
+                this.turretMesh.castShadow = true
+                scene.add(this.turretMesh)
+
+                this.chaseCam.position.set(0, 1.5, 4)
+                this.chaseCamPivot.add(this.chaseCam)
+                this.frameMesh.add(this.chaseCamPivot)
+
+                //bullets
+                for (let i = 0; i < 3; i++) {
+                    this.bulletMesh[i] = new THREE.Mesh(
+                        new THREE.SphereGeometry(0.2),
+                        new THREE.MeshBasicMaterial({
+                            color: 0x00ff00,
+                            wireframe: true,
+                        })
+                    )
+                    this.bulletMesh[i].castShadow = true
+                    scene.add(this.bulletMesh[i])
+                    this.totalBullets = 3
+                }
 
                 loader.load(
                     'models/tyre.glb',
@@ -137,14 +110,12 @@ export default class Car {
                         this.wheelRFMesh = this.wheelLFMesh.clone()
                         this.wheelLBMesh = this.wheelLFMesh.clone()
                         this.wheelRBMesh = this.wheelLFMesh.clone()
-                        this.wheelLFMesh.scale.setScalar(0.9)
-                        this.wheelRFMesh.scale.setScalar(0.9)
+                        this.wheelLFMesh.scale.setScalar(0.85)
+                        this.wheelRFMesh.scale.setScalar(0.85)
                         scene.add(this.wheelLFMesh)
                         scene.add(this.wheelRFMesh)
                         scene.add(this.wheelLBMesh)
                         scene.add(this.wheelRBMesh)
-
-                        
                     },
                     (xhr) => {
                         console.log((xhr.loaded / xhr.total) * 100 + '% loaded')
@@ -161,145 +132,305 @@ export default class Car {
                 console.log(error)
             }
         )
+        this.frameBody = new CANNON.Body({ mass: 0.1 })
+        this.frameBody.addShape(new CANNON.Sphere(0.3), new CANNON.Vec3(0, 0, -1.2))
+        this.frameBody.addShape(
+            new CANNON.Sphere(0.5),
+            new CANNON.Vec3(0, 0.2, 0.8)
+        )
+        this.frameBody.addShape(new CANNON.Sphere(0.1), new CANNON.Vec3(1, 0, 0))
+        this.frameBody.addShape(new CANNON.Sphere(0.1), new CANNON.Vec3(-1, 0, 0))
+        this.frameBody.position.set(0, 0, 0)
+        this.physics.world.addBody(this.frameBody)
+        this.partIds.push(this.frameBody.id)
 
-        //bullets
-        for (let i = 0; i < 3; i++) {
-            this.bullet[i] = new THREE.Mesh(
-                new THREE.SphereGeometry(0.2),
-                new THREE.MeshBasicMaterial({ color: 0x00ff00, wireframe: true })
-            )
-            this.bullet[i].castShadow = true
-            scene.add(this.bullet[i])
-        }
+        this.turretBody = new CANNON.Body({ mass: 0 })
+        this.turretBody.addShape(
+            new CANNON.Sphere(0.2),
+            new CANNON.Vec3(0, 0, -1.0)
+        )
+        this.turretBody.position.set(0, 2, 0)
+        this.physics.world.addBody(this.turretBody)
+        this.partIds.push(this.turretBody.id)
 
-        this.carFullySetup = true
-    }
+        const wheelLFShape = new CANNON.Sphere(0.35)
+        this.wheelLFBody = new CANNON.Body({
+            mass: 1,
+            material: this.physics.wheelMaterial,
+        })
+        this.wheelLFBody.addShape(wheelLFShape)
+        this.wheelLFBody.position.set(-2, 0, -2)
+        this.physics.world.addBody(this.wheelLFBody)
+        this.partIds.push(this.wheelLFBody.id)
 
-    updateData(gameData: any) {
-        //console.log(gameData)
-        this.targetPosFrame.set(gameData.p.x, gameData.p.y, gameData.p.z)
-        this.targetQuatFrame.set(
-            gameData.q.x,
-            gameData.q.y,
-            gameData.q.z,
-            gameData.q.w
-        )
-        this.targetPosLFWheel.set(
-            gameData.w[0].p.x,
-            gameData.w[0].p.y,
-            gameData.w[0].p.z
-        )
-        this.targetQuatLFWheel.set(
-            gameData.w[0].q.x,
-            gameData.w[0].q.y,
-            gameData.w[0].q.z,
-            gameData.w[0].q.w
-        )
-        this.targetPosRFWheel.set(
-            gameData.w[1].p.x,
-            gameData.w[1].p.y,
-            gameData.w[1].p.z
-        )
-        this.targetQuatRFWheel.set(
-            gameData.w[1].q.x,
-            gameData.w[1].q.y,
-            gameData.w[1].q.z,
-            gameData.w[1].q.w
-        )
-        this.targetPosLBWheel.set(
-            gameData.w[2].p.x,
-            gameData.w[2].p.y,
-            gameData.w[2].p.z
-        )
-        this.targetQuatLBWheel.set(
-            gameData.w[2].q.x,
-            gameData.w[2].q.y,
-            gameData.w[2].q.z,
-            gameData.w[2].q.w
-        )
-        this.targetPosRBWheel.set(
-            gameData.w[3].p.x,
-            gameData.w[3].p.y,
-            gameData.w[3].p.z
-        )
-        this.targetQuatRBWheel.set(
-            gameData.w[3].q.x,
-            gameData.w[3].q.y,
-            gameData.w[3].q.z,
-            gameData.w[3].q.w
-        )
+        const wheelRFShape = new CANNON.Sphere(0.35)
+        this.wheelRFBody = new CANNON.Body({
+            mass: 1,
+            material: this.physics.wheelMaterial,
+        })
+        this.wheelRFBody.addShape(wheelRFShape)
+        this.wheelRFBody.position.set(2, 0, -2)
+        this.physics.world.addBody(this.wheelRFBody)
+        this.partIds.push(this.wheelRFBody.id)
 
-        this.targetQuatTurret.set(
-            gameData.cq.x,
-            gameData.cq.y,
-            gameData.cq.z,
-            gameData.cq.w
-        )
+        const wheelLBShape = new CANNON.Sphere(0.4)
+        this.wheelLBBody = new CANNON.Body({
+            mass: 1,
+            material: this.physics.wheelMaterial,
+        })
+        this.wheelLBBody.addShape(wheelLBShape)
+        this.wheelLBBody.position.set(-2, 0, 2)
+        this.physics.world.addBody(this.wheelLBBody)
+        this.partIds.push(this.wheelLBBody.id)
 
-        for (let i = 0; i < 3; i++) {
-            //console.log(gameData.bc > this.lastBC)
-            if (gameData.b[i].c > this.lastC[i]) {
-                //set pos and quat now
-                this.lastC[i] = gameData.b[i].c
-                this.bullet[i].position.copy(this.turretMesh.position)
-                this.bullet[i].quaternion.copy(this.turretMesh.quaternion)
+        const wheelRBShape = new CANNON.Sphere(0.4)
+        this.wheelRBBody = new CANNON.Body({
+            mass: 1,
+            material: this.physics.wheelMaterial,
+        })
+        this.wheelRBBody.addShape(wheelRBShape)
+        this.wheelRBBody.position.set(2, 0, 2)
+        this.physics.world.addBody(this.wheelRBBody)
+        this.partIds.push(this.wheelRBBody.id)
 
-                //
-                if (this.shootSound.isPlaying) {
-                    this.shootSound.stop()
-                }
-                this.shootSound.play()
+        const leftFrontAxis = new CANNON.Vec3(1, 0, 0)
+        const rightFrontAxis = new CANNON.Vec3(1, 0, 0)
+        const leftBackAxis = new CANNON.Vec3(1, 0, 0)
+        const rightBackAxis = new CANNON.Vec3(1, 0, 0)
+
+        this.constraintLF = new CANNON.HingeConstraint(
+            this.frameBody,
+            this.wheelLFBody,
+            {
+                pivotA: new CANNON.Vec3(-1, 0, -1),
+                axisA: leftFrontAxis,
+                maxForce: 0.66,
             }
-            this.targetPosBullet[i].set(
-                gameData.b[i].p.x,
-                gameData.b[i].p.y,
-                gameData.b[i].p.z
-            )
-            this.targetQuatBullet[i].set(
-                gameData.b[i].q.x,
-                gameData.b[i].q.y,
-                gameData.b[i].q.z,
-                gameData.b[i].q.w
-            )
+        )
+        this.physics.world.addConstraint(this.constraintLF)
+        this.constraintRF = new CANNON.HingeConstraint(
+            this.frameBody,
+            this.wheelRFBody,
+            {
+                pivotA: new CANNON.Vec3(1, 0, -1),
+                axisA: rightFrontAxis,
+                maxForce: 0.66,
+            }
+        )
+        this.physics.world.addConstraint(this.constraintRF)
+        this.constraintLB = new CANNON.HingeConstraint(
+            this.frameBody,
+            this.wheelLBBody,
+            {
+                pivotA: new CANNON.Vec3(-1, 0, 1),
+                axisA: leftBackAxis,
+                maxForce: 0.66,
+            }
+        )
+        this.physics.world.addConstraint(this.constraintLB)
+        this.constraintRB = new CANNON.HingeConstraint(
+            this.frameBody,
+            this.wheelRBBody,
+            {
+                pivotA: new CANNON.Vec3(1, 0, 1),
+                axisA: rightBackAxis,
+                maxForce: 0.66,
+            }
+        )
+        this.physics.world.addConstraint(this.constraintRB)
+
+        // //rear wheel drive
+        this.constraintLB.enableMotor()
+        this.constraintRB.enableMotor()
+
+        //add bullets
+        for (let i = 0; i < 3; i++) {
+            this.bulletBody[i] = new CANNON.Body({ mass: 1 }) //, material: wheelMaterial })
+            this.bulletBody[i].addShape(new CANNON.Sphere(0.15))
+            this.bulletBody[i].sleep()
+            this.physics.world.addBody(this.bulletBody[i])
         }
-
-        this.carSound.setPlaybackRate(Math.abs(gameData.v / 50) + Math.random() / 9)
-
-        // //debug cannon shape
-        // this.debugMesh.position.set(gameData.dp.x, gameData.dp.y, gameData.dp.z)
-        // this.debugMesh.quaternion.set(
-        //     gameData.dq.x,
-        //     gameData.dq.y,
-        //     gameData.dq.z,
-        //     gameData.dq.w
-        // )
     }
 
-    updatePositionQuaternion() {
-        this.frame.position.lerp(this.targetPosFrame, 0.1)
-        this.frame.quaternion.slerp(this.targetQuatFrame, 0.1)
+    getNextBulletId(): number {
+        this.bulletId += 1
+        if (this.bulletId > 2) {
+            this.bulletId = 0
+        }
+        //this.lastBulletCounter[this.bulletId] += 1
 
-        this.wheelLFMesh.position.lerp(this.targetPosLFWheel, 0.1)
-        this.wheelLFMesh.quaternion.slerp(this.targetQuatLFWheel, 0.5)
-        this.wheelRFMesh.position.lerp(this.targetPosRFWheel, 0.1)
-        this.wheelRFMesh.quaternion.slerp(this.targetQuatRFWheel, 0.5)
-        this.wheelLBMesh.position.lerp(this.targetPosLBWheel, 0.1)
-        this.wheelLBMesh.quaternion.slerp(this.targetQuatLBWheel, 0.5)
-        this.wheelRBMesh.position.lerp(this.targetPosRBWheel, 0.1)
-        this.wheelRBMesh.quaternion.slerp(this.targetQuatRBWheel, 0.5)
+        return this.bulletId
+    }
+
+    shoot() {
+        if (this.enabled) {
+            const bulletId = this.getNextBulletId()
+            this.bulletBody[bulletId].velocity.set(0, 0, 0)
+            this.bulletBody[bulletId].angularVelocity.set(0, 0, 0)
+            let v = new THREE.Vector3(0, 0, -1)
+            const q = new THREE.Quaternion()
+                .set(
+                    this.turretBody.quaternion.x,
+                    this.turretBody.quaternion.y,
+                    this.turretBody.quaternion.z,
+                    this.turretBody.quaternion.w
+                )
+                .normalize()
+            v.applyQuaternion(q)
+            v.multiplyScalar(2)
+            v.add(
+                new THREE.Vector3(
+                    this.turretBody.position.x,
+                    this.turretBody.position.y,
+                    this.turretBody.position.z
+                )
+            )
+
+            this.bulletBody[bulletId].position.set(v.x, v.y, v.z)
+            //console.log(this.cars[id].bullet.position)
+            v = new THREE.Vector3(0, 0, -1)
+            v.applyQuaternion(q)
+            v.multiplyScalar(40)
+            this.bulletBody[bulletId].velocity.set(v.x, v.y, v.z)
+            this.bulletBody[bulletId].wakeUp()
+        }
+    }
+
+    spawn(startPosition: THREE.Vector3) {
+        console.log('Spawn Car')
+        //console.log(startPosition)
+
+        const o = new THREE.Object3D()
+        o.position.copy(startPosition)
+        o.lookAt(new THREE.Vector3())
+        o.rotateX(-Math.PI / 2)
+
+        const q = new CANNON.Quaternion().set(
+            o.quaternion.x,
+            o.quaternion.y,
+            o.quaternion.z,
+            o.quaternion.w
+        )
+
+        this.frameBody.position.set(
+            startPosition.x,
+            startPosition.y,
+            startPosition.z
+        )
+        this.frameBody.quaternion.copy(q)
+        this.turretBody.position.set(
+            startPosition.x,
+            startPosition.y,
+            startPosition.z
+        )
+        this.turretBody.quaternion.copy(q)
+        this.wheelLFBody.position.set(
+            startPosition.x,
+            startPosition.y,
+            startPosition.z
+        )
+        this.wheelLFBody.quaternion.copy(q)
+        this.wheelRFBody.position.set(
+            startPosition.x,
+            startPosition.y,
+            startPosition.z
+        )
+        this.wheelRFBody.quaternion.copy(q)
+        this.wheelLBBody.position.set(
+            startPosition.x,
+            startPosition.y,
+            startPosition.z
+        )
+        this.wheelLBBody.quaternion.copy(q)
+        this.wheelRBBody.position.set(
+            startPosition.x,
+            startPosition.y,
+            startPosition.z
+        )
+        this.wheelRBBody.quaternion.copy(q)
+
+        //console.log(this.wheelRBBody.quaternion)
+    }
+
+    update() {
+        this.chaseCam.getWorldPosition(this.camPos)
+        this.camera.position.lerpVectors(this.camera.position, this.camPos, 0.2)
+
+        this.chaseCam.getWorldQuaternion(this.camQuat)
+        this.camera.quaternion.slerp(this.camQuat, 0.2)
+
+        //console.log(this.frameBody.position.x)
+        this.frameMesh.position.x = this.frameBody.position.x
+        this.frameMesh.position.y = this.frameBody.position.y
+        this.frameMesh.position.z = this.frameBody.position.z
+        this.frameMesh.quaternion.x = this.frameBody.quaternion.x
+        this.frameMesh.quaternion.y = this.frameBody.quaternion.y
+        this.frameMesh.quaternion.z = this.frameBody.quaternion.z
+        this.frameMesh.quaternion.w = this.frameBody.quaternion.w
 
         this.turretPivot.getWorldPosition(this.tmpVec)
         this.turretMesh.position.copy(this.tmpVec)
-        this.turretMesh.quaternion.slerp(this.targetQuatTurret, 0.05)
-        //this.turretMesh.quaternion.copy(this.targetQuatTurret)
+        this.turretMesh.quaternion.slerp(this.camQuat, 0.05)
 
-        //console.log(this.turretMesh.position.x)
+        this.turretBody.position.set(
+            this.turretMesh.position.x,
+            this.turretMesh.position.y,
+            this.turretMesh.position.z
+        )
+        this.turretBody.quaternion.set(
+            this.turretMesh.quaternion.x,
+            this.turretMesh.quaternion.y,
+            this.turretMesh.quaternion.z,
+            this.turretMesh.quaternion.w
+        )
 
-        for (let i = 0; i < 3; i++) {
-            this.bullet[i].position.lerp(this.targetPosBullet[i], 0.2)
-            this.bullet[i].quaternion.slerp(this.targetQuatBullet[i], 0.2)
-            //this.bullet.position.copy(this.targetPosBullet)
-            //this.bullet.quaternion.copy(this.targetQuatBullet)
+        this.wheelLFMesh.position.x = this.wheelLFBody.position.x
+        this.wheelLFMesh.position.y = this.wheelLFBody.position.y
+        this.wheelLFMesh.position.z = this.wheelLFBody.position.z
+        this.wheelLFMesh.quaternion.x = this.wheelLFBody.quaternion.x
+        this.wheelLFMesh.quaternion.y = this.wheelLFBody.quaternion.y
+        this.wheelLFMesh.quaternion.z = this.wheelLFBody.quaternion.z
+        this.wheelLFMesh.quaternion.w = this.wheelLFBody.quaternion.w
+
+        this.wheelRFMesh.position.x = this.wheelRFBody.position.x
+        this.wheelRFMesh.position.y = this.wheelRFBody.position.y
+        this.wheelRFMesh.position.z = this.wheelRFBody.position.z
+        this.wheelRFMesh.quaternion.x = this.wheelRFBody.quaternion.x
+        this.wheelRFMesh.quaternion.y = this.wheelRFBody.quaternion.y
+        this.wheelRFMesh.quaternion.z = this.wheelRFBody.quaternion.z
+        this.wheelRFMesh.quaternion.w = this.wheelRFBody.quaternion.w
+
+        this.wheelLBMesh.position.x = this.wheelLBBody.position.x
+        this.wheelLBMesh.position.y = this.wheelLBBody.position.y
+        this.wheelLBMesh.position.z = this.wheelLBBody.position.z
+        this.wheelLBMesh.quaternion.x = this.wheelLBBody.quaternion.x
+        this.wheelLBMesh.quaternion.y = this.wheelLBBody.quaternion.y
+        this.wheelLBMesh.quaternion.z = this.wheelLBBody.quaternion.z
+        this.wheelLBMesh.quaternion.w = this.wheelLBBody.quaternion.w
+
+        this.wheelRBMesh.position.x = this.wheelRBBody.position.x
+        this.wheelRBMesh.position.y = this.wheelRBBody.position.y
+        this.wheelRBMesh.position.z = this.wheelRBBody.position.z
+        this.wheelRBMesh.quaternion.x = this.wheelRBBody.quaternion.x
+        this.wheelRBMesh.quaternion.y = this.wheelRBBody.quaternion.y
+        this.wheelRBMesh.quaternion.z = this.wheelRBBody.quaternion.z
+        this.wheelRBMesh.quaternion.w = this.wheelRBBody.quaternion.w
+
+        this.constraintLB.setMotorSpeed(this.forwardVelocity)
+        this.constraintRB.setMotorSpeed(this.forwardVelocity)
+        this.constraintLF.axisA.z = this.rightVelocity
+        this.constraintRF.axisA.z = this.rightVelocity
+
+        for (let i = 0; i < this.totalBullets; i++) {
+            this.bulletMesh[i].position.x = this.bulletBody[i].position.x
+            this.bulletMesh[i].position.y = this.bulletBody[i].position.y
+            this.bulletMesh[i].position.z = this.bulletBody[i].position.z
+            this.bulletMesh[i].quaternion.x = this.bulletBody[i].quaternion.x
+            this.bulletMesh[i].quaternion.y = this.bulletBody[i].quaternion.y
+            this.bulletMesh[i].quaternion.z = this.bulletBody[i].quaternion.z
+            this.bulletMesh[i].quaternion.w = this.bulletBody[i].quaternion.w
+            //this.player.b[i].c = this.lastBulletCounter[i]
         }
+        //console.log(this.bulletMesh[0].position.x)
     }
 }

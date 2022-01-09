@@ -1,4 +1,4 @@
-//import XYController from './XYController'
+import Car from './car'
 import Game from './game'
 
 export default class UI {
@@ -9,11 +9,9 @@ export default class UI {
     public newGameAlert: HTMLDivElement
     public gameClosedAlert: HTMLDivElement
 
-    // public xycontrollerLook?: XYController
-    // public xycontrollerMove?: XYController
-
-    private rendererDomElement: HTMLCanvasElement
-    private game: Game
+    rendererDomElement: HTMLCanvasElement
+    game: Game
+    camAngle = 0
 
     public keyMap: { [id: string]: boolean } = {}
 
@@ -38,26 +36,7 @@ export default class UI {
         this.startButton.addEventListener(
             'click',
             () => {
-                // if (theCarGame.isMobile) {
-                //     this.xycontrollerLook = new XYController(
-                //         document.getElementById(
-                //             'XYControllerLook'
-                //         ) as HTMLCanvasElement,
-                //         this.onXYControllerLook
-                //     )
-                //     this.xycontrollerMove = new XYController(
-                //         document.getElementById(
-                //             'XYControllerMove'
-                //         ) as HTMLCanvasElement,
-                //         this.onXYControllerMove
-                //     )
-
-                //     this.menuPanel.style.display = 'none'
-                //     //this.recentWinnersTable.style.display = 'block'
-                //     this.menuActive = false
-                // } else {
                 rendererDomElement.requestPointerLock()
-                //}
             },
             false
         )
@@ -74,10 +53,10 @@ export default class UI {
             var letterNumber = /^[0-9a-zA-Z]+$/
             var value = (e.target as HTMLFormElement).value
             if (value.match(letterNumber) && value.length <= 12) {
-                game.socket.emit(
-                    'updateScreenName',
-                    (e.target as HTMLFormElement).value
-                )
+                // game.socket.emit(
+                //     'updateScreenName',
+                //     (e.target as HTMLFormElement).value
+                // )
             } else {
                 alert('Alphanumeric screen names only please. Max length 12')
             }
@@ -123,9 +102,9 @@ export default class UI {
             this.recentWinnersTable.style.display = 'block'
             this.menuActive = false
 
-            Object.keys(this.game.cars).forEach((c) => {
-                this.game.cars[c].carSound.play()
-            })
+            // Object.keys(this.game.cars).forEach((c) => {
+            //     this.game.cars[c].carSound.play()
+            // })
         } else {
             this.rendererDomElement.removeEventListener(
                 'mousemove',
@@ -145,115 +124,86 @@ export default class UI {
             this.gameClosedAlert.style.display = 'none'
             this.newGameAlert.style.display = 'none'
             this.menuActive = true
-            Object.keys(this.game.cars).forEach((c) => {
-                this.game.cars[c].carSound.stop()
-            })
+            // Object.keys(this.game.cars).forEach((c) => {
+            //     this.game.cars[c].carSound.stop()
+            // })
         }
+
+        setInterval(() => {
+            const car = this.game.car
+            car.thrusting = false
+            car.steering = false
+            if (this.keyMap['w'] || this.keyMap['ArrowUp']) {
+                if (car.forwardVelocity <= 40.0) car.forwardVelocity += 0.75
+                car.thrusting = true
+            }
+            if (this.keyMap['s'] || this.keyMap['ArrowDown']) {
+                if (car.forwardVelocity >= -20.0) car.forwardVelocity -= 0.75
+                car.thrusting = true
+            }
+            if (this.keyMap['a'] || this.keyMap['ArrowLeft']) {
+                if (car.rightVelocity >= -0.6) car.rightVelocity -= 0.1
+                car.steering = true
+            }
+            if (this.keyMap['d'] || this.keyMap['ArrowRight']) {
+                if (car.rightVelocity <= 0.6) car.rightVelocity += 0.1
+                car.steering = true
+            }
+            if (this.keyMap[' ']) {
+                if (car.forwardVelocity > 0) {
+                    car.forwardVelocity -= 2
+                }
+                if (car.forwardVelocity < 0) {
+                    car.forwardVelocity += 2
+                }
+            }
+
+            if (!car.thrusting) {
+                //not going forward or backwards so gradually slow down
+                if (car.forwardVelocity > 0) {
+                    car.forwardVelocity -= 0.25
+                }
+                if (car.forwardVelocity < 0) {
+                    car.forwardVelocity += 0.25
+                }
+            }
+            if (!car.steering) {
+                if (car.rightVelocity > 0) {
+                    car.rightVelocity -= 0.05
+                }
+                if (car.rightVelocity < 0) {
+                    car.rightVelocity += 0.05
+                }
+            }
+        }, 50)
     }
 
     onClick = () => {
-        this.game.socket.emit('shoot')
-        
-        // this.theCarGame.explosions.forEach((e) => {
-        //     e.explode(this.theCarGame.cars[this.theCarGame.myId].targetPosFrame)
-        // })
+        //this.game.socket.emit('shoot')
+        this.game.car.shoot()
+        console.log("shoot")
         return false
     }
 
-    camAngle = 0
     onDocumentMouseMove = (e: MouseEvent) => {
-        // this.theBallGame.cameraRotationXZOffset +=
-        //     e.movementX * this.theBallGame.sensitivity
-        // this.theBallGame.cameraRotationYOffset +=
-        //     e.movementY * this.theBallGame.sensitivity
-        // this.theBallGame.cameraRotationYOffset = Math.max(
-        //     Math.min(this.theBallGame.cameraRotationYOffset, 2.5),
-        //     -2.5
-        // )
-        // return false
-        this.game.chaseCamPivot.rotation.y -= e.movementX * 0.0025
-
+        this.game.car.chaseCamPivot.rotation.y -= e.movementX * 0.0025
         this.camAngle += e.movementY * 0.002
-        //console.log(this.camAngle)
-        // //this.game.chaseCamPivot.rotation.z += e.movementY * 0.005
         this.camAngle = Math.max(Math.min(this.camAngle, 0.5), -0.4)
-        this.game.chaseCamPivot.position.y = this.camAngle * 4
-        this.game.chaseCam.rotation.x = -this.camAngle
+        this.game.car.chaseCamPivot.position.y = this.camAngle * 4
+        this.game.car.chaseCam.rotation.x = -this.camAngle
 
         return false
     }
 
     onDocumentMouseWheel = (e: THREE.Event) => {
-        // this.theBallGame.radius -= e.deltaY * 0.005
-        // this.theBallGame.radius = Math.max(Math.min(this.theBallGame.radius, 20), 2)
-        // return false
-        let newVal = this.game.chaseCam.position.z + e.deltaY * 0.05
+        let newVal = this.game.car.chaseCam.position.z + e.deltaY * 0.05
         if (newVal > 0.25) {
-            this.game.chaseCam.position.z = newVal
+            this.game.car.chaseCam.position.z = newVal
         }
         return false
     }
 
     onDocumentKey = (e: KeyboardEvent) => {
         this.keyMap[e.key] = e.type === 'keydown'
-        // const tmpVec = [0, 0]
-
-        // if (this.keyMap['w']) {
-        //     tmpVec[0] += Math.cos(this.theBallGame.cameraRotationXZOffset)
-        //     tmpVec[1] -= Math.sin(this.theBallGame.cameraRotationXZOffset)
-        // }
-        // if (this.keyMap['s']) {
-        //     tmpVec[0] -= Math.cos(this.theBallGame.cameraRotationXZOffset)
-        //     tmpVec[1] += Math.sin(this.theBallGame.cameraRotationXZOffset)
-        // }
-        // if (this.keyMap['a']) {
-        //     tmpVec[0] += Math.sin(this.theBallGame.cameraRotationXZOffset)
-        //     tmpVec[1] += Math.cos(this.theBallGame.cameraRotationXZOffset)
-        // }
-        // if (this.keyMap['d']) {
-        //     tmpVec[0] -= Math.sin(this.theBallGame.cameraRotationXZOffset)
-        //     tmpVec[1] -= Math.cos(this.theBallGame.cameraRotationXZOffset)
-        // }
-        // if (this.keyMap[' ']) {
-        //     //space
-        //     this.theBallGame.spcKey = 1
-        // } else {
-        //     this.theBallGame.spcKey = 0
-        // }
-        // this.theBallGame.vec = [tmpVec[0], tmpVec[1]]
     }
-
-    // onXYControllerLook = (value: vec2) => {
-    //     // this.theBallGame.cameraRotationXZOffset -= value.x * 0.1
-    //     // this.theBallGame.cameraRotationYOffset += value.y * 0.1
-    //     // this.theBallGame.cameraRotationYOffset = Math.max(
-    //     //     Math.min(this.theBallGame.cameraRotationYOffset, 2.5),
-    //     //     -2.5
-    //     // )
-    // }
-
-    // onXYControllerMove = (value: vec2) => {
-    //     // const tmpVec = [0, 0]
-    //     // if (value.y > 0) {
-    //     //     //w
-    //     //     tmpVec[0] += Math.cos(this.theBallGame.cameraRotationXZOffset) * 0.75
-    //     //     tmpVec[1] -= Math.sin(this.theBallGame.cameraRotationXZOffset) * 0.75
-    //     // }
-    //     // if (value.y < 0) {
-    //     //     //s
-    //     //     tmpVec[0] -= Math.cos(this.theBallGame.cameraRotationXZOffset) * 0.75
-    //     //     tmpVec[1] += Math.sin(this.theBallGame.cameraRotationXZOffset) * 0.75
-    //     // }
-    //     // if (value.x > 0) {
-    //     //     //a
-    //     //     tmpVec[0] += Math.sin(this.theBallGame.cameraRotationXZOffset) * 0.75
-    //     //     tmpVec[1] += Math.cos(this.theBallGame.cameraRotationXZOffset) * 0.75
-    //     // }
-    //     // if (value.x < 0) {
-    //     //     //d
-    //     //     tmpVec[0] -= Math.sin(this.theBallGame.cameraRotationXZOffset) * 0.75
-    //     //     tmpVec[1] -= Math.cos(this.theBallGame.cameraRotationXZOffset) * 0.75
-    //     // }
-    //     // this.theBallGame.vec = [tmpVec[0], tmpVec[1]]
-    // }
 }

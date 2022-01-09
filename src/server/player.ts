@@ -6,8 +6,10 @@ export default class Player {
 
     public p = { x: 0, y: 0, z: 0 } //position
     public q = { x: 0, y: 0, z: 0, w: 0 } //quaternion
-    public cq = { x: 0, y: 0, z: 0, w: 0 } //camera quaternion, used for pointing turret
-    public v = 0
+    public tp = { x: 0, y: 0, z: 0 } //turret position
+    public tq = { x: 0, y: 0, z: 0, w: 0 } //turret quaternion
+    //public cq = { x: 0, y: 0, z: 0, w: 0 } //camera quaternion, used for pointing turret
+    //public v = 0
     // public dp = { x: 0, y: 0, z: 0, w: 0 } //debug position
     // public dq = { x: 0, y: 0, z: 0, w: 0 } //debug quaternion
 

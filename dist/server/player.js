@@ -8,8 +8,10 @@ class Player {
         this.s = 0; //score
         this.p = { x: 0, y: 0, z: 0 }; //position
         this.q = { x: 0, y: 0, z: 0, w: 0 }; //quaternion
-        this.cq = { x: 0, y: 0, z: 0, w: 0 }; //camera quaternion, used for pointing turret
-        this.v = 0;
+        this.tp = { x: 0, y: 0, z: 0 }; //turret position
+        this.tq = { x: 0, y: 0, z: 0, w: 0 }; //turret quaternion
+        //public cq = { x: 0, y: 0, z: 0, w: 0 } //camera quaternion, used for pointing turret
+        //public v = 0
         // public dp = { x: 0, y: 0, z: 0, w: 0 } //debug position
         // public dq = { x: 0, y: 0, z: 0, w: 0 } //debug quaternion
         this.w = [

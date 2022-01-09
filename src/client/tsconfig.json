@@ -1,8 +1,5 @@
 {
     "compilerOptions": {
-        "paths": {
-            "three/examples/jsm/libs/tween.module.min": ["../typings/tween.js"]
-        },
         "moduleResolution": "node",
         "strict": true
     },

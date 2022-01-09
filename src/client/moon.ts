@@ -17,13 +17,15 @@ export default class Moon {
         scene.add(this.mesh)
     }
 
-    updateData(gameData: any) {
-        this.targetPos.set(gameData.p.x, gameData.p.y, gameData.p.z)
-        this.targetQuat.set(gameData.q.x, gameData.q.y, gameData.q.z, gameData.q.w)
-    }
+    update() {}
+    
+    // updateData(gameData: any) {
+    //     this.targetPos.set(gameData.p.x, gameData.p.y, gameData.p.z)
+    //     this.targetQuat.set(gameData.q.x, gameData.q.y, gameData.q.z, gameData.q.w)
+    // }
 
-    updatePositionQuaternion() {
-        this.mesh.position.lerp(this.targetPos, 0.1)
-        this.mesh.quaternion.slerp(this.targetQuat, 0.1)
-    }
+    // updatePositionQuaternion() {
+    //     this.mesh.position.lerp(this.targetPos, 0.1)
+    //     this.mesh.quaternion.slerp(this.targetQuat, 0.1)
+    // }
 }
