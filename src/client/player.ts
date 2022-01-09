@@ -10,6 +10,8 @@ export default class Player {
     wheelRFMesh = new THREE.Group()
     wheelLBMesh = new THREE.Group()
     wheelRBMesh = new THREE.Group()
+    bulletMesh = [new THREE.Mesh(), new THREE.Mesh(), new THREE.Mesh()]
+    lastBulletCounter = [-1, -1, -1] //used to decide if a bullet should instantly be repositioned or smoothly lerped
 
     constructor(scene: THREE.Scene) {
         this.scene = scene
@@ -44,19 +46,16 @@ export default class Player {
                 this.turretMesh.castShadow = true
                 scene.add(this.turretMesh)
 
-                // //bullets
-                // for (let i = 0; i < 3; i++) {
-                //     this.bulletMesh[i] = new THREE.Mesh(
-                //         new THREE.SphereGeometry(0.2),
-                //         new THREE.MeshBasicMaterial({
-                //             color: 0x00ff00,
-                //             wireframe: true,
-                //         })
-                //     )
-                //     this.bulletMesh[i].castShadow = true
-                //     scene.add(this.bulletMesh[i])
-                //     this.totalBullets = 3
-                // }
+                // bullets
+                for (let i = 0; i < 3; i++) {
+                    this.bulletMesh[i].geometry = new THREE.SphereGeometry(0.2)
+                    this.bulletMesh[i].material = new THREE.MeshBasicMaterial({
+                        color: 0x00ff00,
+                        wireframe: true,
+                    })
+                    this.bulletMesh[i].castShadow = true
+                    scene.add(this.bulletMesh[i])
+                }
 
                 loader.load(
                     'models/tyre.glb',
@@ -159,10 +158,35 @@ export default class Player {
             ),
             0.1
         )
+
+        for (let i = 0; i < 3; i++) {
+            // if (data.b[i].c > this.lastBulletCounter[i]) {
+            //     this.lastBulletCounter[i] = data.b[i].c
+            //     this.bulletMesh[i].position.set(
+            //         data.b[i].p.x,
+            //         data.b[i].p.y,
+            //         data.b[i].p.z
+            //     )
+            // } else {
+            // this.bulletMesh[i].position.lerp(
+            //     new THREE.Vector3(data.b[i].p.x, data.b[i].p.y, data.b[i].p.z),
+            //     0.1
+            // )
+            this.lastBulletCounter[i] = data.b[i].c
+            this.bulletMesh[i].position.set(
+                data.b[i].p.x,
+                data.b[i].p.y,
+                data.b[i].p.z
+            )
+            //}
+        }
         //console.log(data.tq)
     }
 
     dispose() {
+        this.scene.remove(this.bulletMesh[0])
+        this.scene.remove(this.bulletMesh[1])
+        this.scene.remove(this.bulletMesh[2])
         this.scene.remove(this.wheelLFMesh)
         this.scene.remove(this.wheelRFMesh)
         this.scene.remove(this.wheelLBMesh)

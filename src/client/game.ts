@@ -86,6 +86,20 @@ export default class Game {
                                 q: this.car.wheelRBMesh.quaternion,
                             },
                         ],
+                        b: [
+                            {
+                                p: this.car.bulletMesh[0].position,
+                                c: this.car.lastBulletCounter[0]
+                            },
+                            {
+                                p: this.car.bulletMesh[1].position,
+                                c: this.car.lastBulletCounter[1]
+                            },
+                            {
+                                p: this.car.bulletMesh[2].position,
+                                c: this.car.lastBulletCounter[2]
+                            },
+                        ],
                     })
                 }, 50)
                 this.ui.updateScoreBoard(recentWinners)

@@ -33,10 +33,10 @@ export default class Car {
     constraintLB: CANNON.HingeConstraint
     constraintRB: CANNON.HingeConstraint
 
-    bulletMesh: THREE.Mesh[] = []
+    bulletMesh = [new THREE.Mesh(), new THREE.Mesh(), new THREE.Mesh()]
     bulletBody: CANNON.Body[] = []
+    public lastBulletCounter = [-1, -1, -1] //used to decide if a bullet should instantly be repositioned or smoothly lerped
     bulletId = -1
-    totalBullets = 0
 
     public thrusting = false
     public steering = false
@@ -90,16 +90,13 @@ export default class Car {
 
                 //bullets
                 for (let i = 0; i < 3; i++) {
-                    this.bulletMesh[i] = new THREE.Mesh(
-                        new THREE.SphereGeometry(0.2),
-                        new THREE.MeshBasicMaterial({
-                            color: 0x00ff00,
-                            wireframe: true,
-                        })
-                    )
+                    this.bulletMesh[i].geometry = new THREE.SphereGeometry(0.2)
+                    this.bulletMesh[i].material = new THREE.MeshBasicMaterial({
+                        color: 0x00ff00,
+                        wireframe: true,
+                    })
                     this.bulletMesh[i].castShadow = true
                     scene.add(this.bulletMesh[i])
-                    this.totalBullets = 3
                 }
 
                 loader.load(
@@ -257,7 +254,7 @@ export default class Car {
         if (this.bulletId > 2) {
             this.bulletId = 0
         }
-        //this.lastBulletCounter[this.bulletId] += 1
+        this.lastBulletCounter[this.bulletId] += 1
 
         return this.bulletId
     }
@@ -421,14 +418,14 @@ export default class Car {
         this.constraintLF.axisA.z = this.rightVelocity
         this.constraintRF.axisA.z = this.rightVelocity
 
-        for (let i = 0; i < this.totalBullets; i++) {
+        for (let i = 0; i < 3; i++) {
             this.bulletMesh[i].position.x = this.bulletBody[i].position.x
             this.bulletMesh[i].position.y = this.bulletBody[i].position.y
             this.bulletMesh[i].position.z = this.bulletBody[i].position.z
-            this.bulletMesh[i].quaternion.x = this.bulletBody[i].quaternion.x
-            this.bulletMesh[i].quaternion.y = this.bulletBody[i].quaternion.y
-            this.bulletMesh[i].quaternion.z = this.bulletBody[i].quaternion.z
-            this.bulletMesh[i].quaternion.w = this.bulletBody[i].quaternion.w
+            // this.bulletMesh[i].quaternion.x = this.bulletBody[i].quaternion.x
+            // this.bulletMesh[i].quaternion.y = this.bulletBody[i].quaternion.y
+            // this.bulletMesh[i].quaternion.z = this.bulletBody[i].quaternion.z
+            // this.bulletMesh[i].quaternion.w = this.bulletBody[i].quaternion.w
             //this.player.b[i].c = this.lastBulletCounter[i]
         }
         //console.log(this.bulletMesh[0].position.x)

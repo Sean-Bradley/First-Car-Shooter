@@ -71,6 +71,12 @@ class Game {
                     this.players[socket.id].w[2].q = message.w[2].q;
                     this.players[socket.id].w[3].p = message.w[3].p;
                     this.players[socket.id].w[3].q = message.w[3].q;
+                    this.players[socket.id].b[0].p = message.b[0].p;
+                    this.players[socket.id].b[0].c = message.b[0].c;
+                    this.players[socket.id].b[1].p = message.b[1].p;
+                    this.players[socket.id].b[1].c = message.b[1].c;
+                    this.players[socket.id].b[2].p = message.b[2].p;
+                    this.players[socket.id].b[2].c = message.b[2].c;
                 }
             });
             socket.on('updateScreenName', (screenName) => {
