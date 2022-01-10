@@ -123,16 +123,22 @@ export default class Game {
             (message: { p: string; pos: THREE.Vector3; dir: CANNON.Vec3 }) => {
                 // console.log('hit ' + message.who)
                 // console.log('hit ' + message.p)
-                if (message.p === this.myId) {
-                    //console.log(message.dir)
-                    this.car.explode(
-                        new CANNON.Vec3(message.dir.x, message.dir.y, message.dir.z)
-                    )
+                if ((this.gamePhase = 1)) {
+                    if (message.p === this.myId) {
+                        //console.log(message.dir)
+                        this.car.explode(
+                            new CANNON.Vec3(
+                                message.dir.x,
+                                message.dir.y,
+                                message.dir.z
+                            )
+                        )
+                    }
+                    //console.log(message.pos.x, message.pos.y, message.pos.z)
+                    this.explosions.forEach((e) => {
+                        e.explode(message.pos)
+                    })
                 }
-                //console.log(message.pos.x, message.pos.y, message.pos.z)
-                this.explosions.forEach((e) => {
-                    e.explode(message.pos)
-                })
             }
         )
 
@@ -149,13 +155,13 @@ export default class Game {
         })
 
         this.socket.on('winner', (screenName: string, recentWinners: []) => {
-            // ;(
-            //     document.getElementById('winnerLabel') as HTMLDivElement
-            // ).style.display = 'block'
-            // ;(
-            //     document.getElementById('winnerScreenName') as HTMLDivElement
-            // ).innerHTML = screenName
-            // this.ui.updateScoreBoard(recentWinners)
+            ;(
+                document.getElementById('winnerLabel') as HTMLDivElement
+            ).style.display = 'block'
+            ;(
+                document.getElementById('winnerScreenName') as HTMLDivElement
+            ).innerHTML = screenName
+            this.ui.updateScoreBoard(recentWinners)
         })
 
         this.socket.on('newGame', () => {
@@ -191,6 +197,17 @@ export default class Game {
                             'winnerScreenName'
                         ) as HTMLDivElement
                     ).innerHTML = ''
+
+                    if (!this.car.enabled) {
+                        this.car.fix()
+                        const pos = this.earth.getSpawnPosition()
+                        this.car.spawn(pos)
+                        setTimeout(() => {
+                            if (this.car.isUpsideDown()) {
+                                this.car.spawn(pos)
+                            }
+                        }, 2000)
+                    }
                 }
                 ;(
                     document.getElementById('gameClock') as HTMLDivElement

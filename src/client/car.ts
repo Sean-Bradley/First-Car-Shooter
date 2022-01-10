@@ -6,6 +6,9 @@ import Player from './player'
 import { Socket } from 'socket.io-client'
 
 export default class Car {
+    upVector = new THREE.ArrowHelper()
+    downVector = new THREE.ArrowHelper()
+
     camera: THREE.PerspectiveCamera
     physics: Physics
     socket: Socket
@@ -54,6 +57,8 @@ export default class Car {
 
     players: { [id: string]: Player }
 
+    upsideDownCounter = -1
+
     constructor(
         scene: THREE.Scene,
         camera: THREE.PerspectiveCamera,
@@ -83,6 +88,21 @@ export default class Car {
                 // this.carSound.loop = true
                 // this.frame.add(this.carSound)
                 // this.frame.add(this.shootSound)
+                this.upVector = new THREE.ArrowHelper(
+                    new THREE.Vector3(0, 1, 0),
+                    new THREE.Vector3(0, 0, 0),
+                    1,
+                    0x00ff00
+                )
+                scene.add(this.upVector)
+
+                this.downVector = new THREE.ArrowHelper(
+                    new THREE.Vector3(0, -1, 0),
+                    new THREE.Vector3(0, 0, 0),
+                    1,
+                    0xff0000
+                )
+                scene.add(this.downVector)
 
                 this.turretPivot = new THREE.Object3D()
                 this.turretPivot.position.y = 1.0
@@ -143,24 +163,33 @@ export default class Car {
         )
         this.frameBody = new CANNON.Body({ mass: 0.1 })
         this.frameBody.addShape(
-            new CANNON.Sphere(0.5),
-            new CANNON.Vec3(0, 0.2, 0.3)
+            new CANNON.Sphere(0.1),
+            new CANNON.Vec3(0, 0.8, 0.4)
         )
-        this.frameBody.addShape(new CANNON.Sphere(0.2), new CANNON.Vec3(0, 0, -1.3))
-        this.frameBody.addShape(new CANNON.Sphere(0.2), new CANNON.Vec3(0, 0, 1.3))
-        this.frameBody.addShape(new CANNON.Sphere(0.1), new CANNON.Vec3(1, 0, 0))
-        this.frameBody.addShape(new CANNON.Sphere(0.1), new CANNON.Vec3(-1, 0, 0))
+        this.frameBody.addShape(
+            new CANNON.Sphere(0.1),
+            new CANNON.Vec3(0, -0.1, -1.3)
+        )
+        this.frameBody.addShape(
+            new CANNON.Sphere(0.1),
+            new CANNON.Vec3(0, -0.1, 1.3)
+        )
+        this.frameBody.addShape(new CANNON.Sphere(0.1), new CANNON.Vec3(1, -0.1, 0))
+        this.frameBody.addShape(
+            new CANNON.Sphere(0.1),
+            new CANNON.Vec3(-1, -0.1, 0)
+        )
         this.frameBody.position.set(0, 1, 0)
         this.physics.world.addBody(this.frameBody)
         //this.partIds.push(this.frameBody.id)
 
         this.turretBody = new CANNON.Body({ mass: 0 })
-        // this.turretBody.addShape(
-        //     new CANNON.Sphere(0.2),
-        //     new CANNON.Vec3(0, 0, -1.0)
-        // )
+        this.turretBody.addShape(
+            new CANNON.Sphere(0.2),
+            new CANNON.Vec3(0, 0, -1.0)
+        )
         //this.turretBody.sleep()
-        //this.turretBody.position.set(0, 3, 0)
+        this.turretBody.position.set(0, 3, 0)
         this.physics.world.addBody(this.turretBody)
         //this.partIds.push(this.turretBody.id)
 
@@ -297,7 +326,6 @@ export default class Car {
                                 )
                                 this.players[p].enabled = false
 
-
                                 // this.players[p].collisionPartIds = []
                                 // setTimeout(() => {
                                 //     this.players[p].collisionPartIds = this.players[p].partIds.slice(0) // a simple clone technique
@@ -308,6 +336,19 @@ export default class Car {
                 })
             })
         }
+
+        setInterval(() => {
+            if (this.isUpsideDown()) {
+                this.upsideDownCounter += 1
+                if (this.upsideDownCounter > 3) {
+                    this.spawn(this.frameMesh.position)
+                    console.log('flipped car')
+                }
+                console.log('car is upside down')
+            } else {
+                this.upsideDownCounter = 0
+            }
+        }, 1000)
     }
 
     getNextBulletId(): number {
@@ -351,6 +392,18 @@ export default class Car {
             v.multiplyScalar(40)
             this.bulletBody[bulletId].velocity.set(v.x, v.y, v.z)
             this.bulletBody[bulletId].wakeUp()
+        }
+    }
+
+    isUpsideDown() {
+        const bodyUp = new THREE.Vector3()
+        bodyUp.copy(this.frameMesh.up).applyQuaternion(this.frameMesh.quaternion)
+        const down = this.frameMesh.position.clone().negate().normalize()
+        //console.log(down.dot(bodyUp))
+        if (down.dot(bodyUp) > 0) {
+            return true
+        } else {
+            return false
         }
     }
 
@@ -413,10 +466,10 @@ export default class Car {
 
     update() {
         this.chaseCam.getWorldPosition(this.camPos)
-        this.camera.position.lerpVectors(this.camera.position, this.camPos, 0.2)
+        this.camera.position.lerpVectors(this.camera.position, this.camPos, 0.1)
 
         this.chaseCam.getWorldQuaternion(this.camQuat)
-        this.camera.quaternion.slerp(this.camQuat, 0.2)
+        this.camera.quaternion.slerp(this.camQuat, 0.1)
 
         //console.log(this.frameBody.position.x)
         this.frameMesh.position.x = this.frameBody.position.x
@@ -426,6 +479,11 @@ export default class Car {
         this.frameMesh.quaternion.y = this.frameBody.quaternion.y
         this.frameMesh.quaternion.z = this.frameBody.quaternion.z
         this.frameMesh.quaternion.w = this.frameBody.quaternion.w
+
+        // this.upVector.position.copy(this.frameMesh.position)
+        // this.upVector.setDirection(bodyUp)
+        // this.downVector.position.copy(this.frameMesh.position)
+        // this.downVector.setDirection(down)
 
         this.turretPivot.getWorldPosition(this.tmpVec)
         this.turretMesh.position.copy(this.tmpVec)

@@ -10,10 +10,10 @@ class Game {
         this.gamePhase = 0; //0=closed, 1=open
         this.gameId = 0;
         this.gameWinner = '';
-        this.resentWinners = [
+        this.recentWinners = [
+            { screenName: 'SeanWasEre', score: 30 },
             { screenName: 'SeanWasEre', score: 10 },
             { screenName: 'SeanWasEre', score: 20 },
-            { screenName: 'SeanWasEre', score: 30 },
         ];
         this.winnersCalculated = false;
         this.players = {};
@@ -30,14 +30,17 @@ class Game {
             });
             if (highestScore > 0) {
                 this.gameWinner = highestScorePlayer.sn;
-                this.resentWinners.push({
+                this.recentWinners.push({
                     screenName: highestScorePlayer.sn,
                     score: highestScore,
                 });
-                while (this.resentWinners.length > 10) {
-                    this.resentWinners.shift();
+                //sort
+                this.recentWinners.sort((a, b) => a.score < b.score ? 1 : b.score < a.score ? -1 : 0);
+                //keep top 10
+                while (this.recentWinners.length > 10) {
+                    this.recentWinners.shift();
                 }
-                this.io.emit('winner', highestScorePlayer.sn, this.resentWinners);
+                this.io.emit('winner', highestScorePlayer.sn, this.recentWinners);
             }
             this.winnersCalculated = true;
         };
@@ -47,7 +50,7 @@ class Game {
             this.players[socket.id].sn = 'Guest' + this.playerCount++;
             //console.log(this.players)
             console.log('a user connected : ' + socket.id);
-            socket.emit('joined', socket.id, this.players[socket.id].sn, this.resentWinners);
+            socket.emit('joined', socket.id, this.players[socket.id].sn, this.recentWinners);
             socket.on('disconnect', () => {
                 console.log('socket disconnected : ' + socket.id);
                 if (this.players && this.players[socket.id]) {
@@ -115,10 +118,13 @@ class Game {
             this.gameClock -= 1;
             if (this.gameClock < -5) {
                 this.gamePhase = 1;
-                this.gameClock = 60;
+                this.gameClock = 30;
                 this.gameWinner = '';
                 this.gameId += 1;
                 this.winnersCalculated = false;
+                Object.keys(this.players).forEach((p) => {
+                    this.players[p].s = 0;
+                });
                 this.io.emit('newGame', {});
             }
             else if (this.gameClock < 0) {

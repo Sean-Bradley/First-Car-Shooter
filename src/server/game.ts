@@ -8,10 +8,10 @@ export default class Game {
     gamePhase = 0 //0=closed, 1=open
     gameId: number = 0
     gameWinner: string = ''
-    resentWinners = [
+    recentWinners = [
+        { screenName: 'SeanWasEre', score: 30 },
         { screenName: 'SeanWasEre', score: 10 },
         { screenName: 'SeanWasEre', score: 20 },
-        { screenName: 'SeanWasEre', score: 30 },
     ]
     winnersCalculated = false
 
@@ -31,7 +31,7 @@ export default class Game {
                 'joined',
                 socket.id,
                 this.players[socket.id].sn,
-                this.resentWinners
+                this.recentWinners
             )
 
             socket.on('disconnect', () => {
@@ -77,20 +77,17 @@ export default class Game {
             //     console.log('shoot from ' + this.players[socket.id].sn)
             // })
 
-            socket.on(
-                'hit',
-                (p: string, pos: THREE.Vector3, dir: any) => {
-                    console.log('notfying hit')
-                    // console.log(who)
-                    // console.log(p)
-                    //console.log(this.players[who])
-                    if (this.players[p].e) {
-                        io.emit('hit', { p: p, pos: pos, dir: dir })
-                        this.players[p].e = false
-                        this.players[socket.id].s += 100
-                    }
+            socket.on('hit', (p: string, pos: THREE.Vector3, dir: any) => {
+                console.log('notfying hit')
+                // console.log(who)
+                // console.log(p)
+                //console.log(this.players[who])
+                if (this.players[p].e) {
+                    io.emit('hit', { p: p, pos: pos, dir: dir })
+                    this.players[p].e = false
+                    this.players[socket.id].s += 100
                 }
-            )
+            })
 
             socket.on('enable', () => {
                 this.players[socket.id].e = true
@@ -111,10 +108,13 @@ export default class Game {
             this.gameClock -= 1
             if (this.gameClock < -5) {
                 this.gamePhase = 1
-                this.gameClock = 60
+                this.gameClock = 30
                 this.gameWinner = ''
                 this.gameId += 1
                 this.winnersCalculated = false
+                Object.keys(this.players).forEach((p) => {
+                    this.players[p].s = 0
+                })
                 this.io.emit('newGame', {})
             } else if (this.gameClock < 0) {
                 this.gamePhase = 0
@@ -138,16 +138,22 @@ export default class Game {
 
         if (highestScore > 0) {
             this.gameWinner = highestScorePlayer.sn
-            this.resentWinners.push({
+            this.recentWinners.push({
                 screenName: highestScorePlayer.sn,
                 score: highestScore,
             })
 
-            while (this.resentWinners.length > 10) {
-                this.resentWinners.shift()
+            //sort
+            this.recentWinners.sort((a: any, b: any) =>
+                a.score < b.score ? 1 : b.score < a.score ? -1 : 0
+            )
+
+            //keep top 10
+            while (this.recentWinners.length > 10) {
+                this.recentWinners.shift()
             }
 
-            this.io.emit('winner', highestScorePlayer.sn, this.resentWinners)
+            this.io.emit('winner', highestScorePlayer.sn, this.recentWinners)
         }
 
         this.winnersCalculated = true

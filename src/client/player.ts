@@ -104,14 +104,15 @@ export default class Player {
             }
         )
 
-        this.frameBody = new CANNON.Body({ mass: 0 })
-        this.frameBody.addShape(new CANNON.Sphere(0.3), new CANNON.Vec3(0, 0, -1.2))
+        this.frameBody = new CANNON.Body({ mass: 1 })
+        //this.frameBody.addShape(new CANNON.Sphere(0.3), new CANNON.Vec3(0, 0, -1.2))
         this.frameBody.addShape(
-            new CANNON.Sphere(0.5),
-            new CANNON.Vec3(0, 0.2, 0.8)
+            new CANNON.Sphere(0.9),
+            new CANNON.Vec3(0, 0.5, 0.2)
         )
-        this.frameBody.addShape(new CANNON.Sphere(0.1), new CANNON.Vec3(1, 0, 0))
-        this.frameBody.addShape(new CANNON.Sphere(0.1), new CANNON.Vec3(-1, 0, 0))
+        // this.frameBody.addShape(new CANNON.Sphere(0.1), new CANNON.Vec3(1, 0, 0))
+        // this.frameBody.addShape(new CANNON.Sphere(0.1), new CANNON.Vec3(-1, 0, 0))
+        //this.frameBody.sleep()
         this.frameBody.position.set(0, 0, 0)
         this.physics.world.addBody(this.frameBody)
         this.partIds.push(this.frameBody.id)
@@ -159,9 +160,8 @@ export default class Player {
         //to stop collisions occurring when objects being created, delay the partIds reference to a second after initialisation
         setTimeout(() => {
             this.collisionPartIds = this.partIds.slice(0) // a simple clone technique
+            this.enabled = true
         }, 1000)
-
-        this.enabled = true
     }
 
     updateLerps(data: any) {
@@ -169,16 +169,16 @@ export default class Player {
 
         this.frameMesh.position.lerp(
             new THREE.Vector3(data.p.x, data.p.y, data.p.z),
-            0.1
+            0.2
         )
         this.frameMesh.quaternion.slerp(
             new THREE.Quaternion(data.q._x, data.q._y, data.q._z, data.q._w),
-            0.1
+            0.2
         )
 
         this.turretMesh.position.lerp(
             new THREE.Vector3(data.tp.x, data.tp.y, data.tp.z),
-            0.1
+            0.2
         )
         this.turretMesh.quaternion.slerp(
             new THREE.Quaternion(data.tq._x, data.tq._y, data.tq._z, data.tq._w),
@@ -186,7 +186,7 @@ export default class Player {
         )
         this.wheelLFMesh.position.lerp(
             new THREE.Vector3(data.w[0].p.x, data.w[0].p.y, data.w[0].p.z),
-            0.1
+            0.2
         )
         this.wheelLFMesh.quaternion.slerp(
             new THREE.Quaternion(
@@ -195,11 +195,11 @@ export default class Player {
                 data.w[0].q._z,
                 data.w[0].q._w
             ),
-            0.1
+            0.2
         )
         this.wheelRFMesh.position.lerp(
             new THREE.Vector3(data.w[1].p.x, data.w[1].p.y, data.w[1].p.z),
-            0.1
+            0.2
         )
         this.wheelRFMesh.quaternion.slerp(
             new THREE.Quaternion(
@@ -208,11 +208,11 @@ export default class Player {
                 data.w[1].q._z,
                 data.w[1].q._w
             ),
-            0.1
+            0.2
         )
         this.wheelLBMesh.position.lerp(
             new THREE.Vector3(data.w[2].p.x, data.w[2].p.y, data.w[2].p.z),
-            0.1
+            0.2
         )
         this.wheelLBMesh.quaternion.slerp(
             new THREE.Quaternion(
@@ -221,11 +221,11 @@ export default class Player {
                 data.w[2].q._z,
                 data.w[2].q._w
             ),
-            0.1
+            0.2
         )
         this.wheelRBMesh.position.lerp(
             new THREE.Vector3(data.w[3].p.x, data.w[3].p.y, data.w[3].p.z),
-            0.1
+            0.2
         )
         this.wheelRBMesh.quaternion.slerp(
             new THREE.Quaternion(
@@ -234,7 +234,7 @@ export default class Player {
                 data.w[3].q._z,
                 data.w[3].q._w
             ),
-            0.1
+            0.2
         )
 
         for (let i = 0; i < 3; i++) {
