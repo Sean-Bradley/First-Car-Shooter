@@ -131,10 +131,8 @@ class Game {
                 players: this.players,
                 moons: moonData,
             });
+            this.physics.world.step(0.0125);
         }, 50);
-        setInterval(() => {
-            this.physics.world.step(0.025);
-        }, 25);
         setInterval(() => {
             this.gameClock -= 1;
             if (this.gameClock < -5) {
