@@ -85,7 +85,7 @@ export default class Game {
                 // console.log(who)
                 // console.log(p)
                 //console.log(this.players[who])
-                if (this.players[p].e) {
+                if (this.players[p] && this.players[p].e) {
                     io.emit('hit', { p: p, pos: pos, dir: dir })
                     this.players[p].e = false
                     this.players[socket.id].s += 100
@@ -98,12 +98,28 @@ export default class Game {
         })
 
         setInterval(() => {
+            const moonData: any[] = []
+            Object.keys(this.physics.moons).forEach((m) => {
+                moonData.push({
+                    p: {
+                        x: this.physics.moons[m].sphereBody.position.x,
+                        y: this.physics.moons[m].sphereBody.position.y,
+                        z: this.physics.moons[m].sphereBody.position.z,
+                    },
+                    q: {
+                        x: this.physics.moons[m].sphereBody.quaternion.x,
+                        y: this.physics.moons[m].sphereBody.quaternion.y,
+                        z: this.physics.moons[m].sphereBody.quaternion.z,
+                        w: this.physics.moons[m].sphereBody.quaternion.w,
+                    },
+                })
+            })
             this.io.emit('gameData', {
                 gameId: this.gameId,
                 gamePhase: this.gamePhase,
                 gameClock: this.gameClock,
                 players: this.players,
-                //obstacles: this.obstacles,
+                moons: moonData,
             })
         }, 50)
 
@@ -121,6 +137,9 @@ export default class Game {
                 this.winnersCalculated = false
                 Object.keys(this.players).forEach((p) => {
                     this.players[p].s = 0
+                })
+                Object.keys(this.physics.moons).forEach((m) => {
+                    this.physics.moons[m].randomise()
                 })
                 this.io.emit('newGame', {})
             } else if (this.gameClock < 0) {

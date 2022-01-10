@@ -9,6 +9,7 @@ import Car from './car'
 import { io, Socket } from 'socket.io-client'
 import Player from './player'
 import Explosion from './explosion'
+import Moon from './moon'
 import CannonUtils from './utils/cannonUtils'
 
 export default class Game {
@@ -27,7 +28,7 @@ export default class Game {
     timestamp = 0
     players: { [id: string]: Player } = {}
     explosions: Explosion[]
-    //moons: { [id: string]: Moon } = {}
+    moons: { [id: string]: Moon } = {}
 
     constructor(
         scene: THREE.Scene,
@@ -247,6 +248,13 @@ export default class Game {
                     }
                     this.players[p].updateLerps(gameData.players[p])
                 }
+            })
+            Object.keys(gameData.moons).forEach((m) => {
+                if (!this.moons[m]) {
+                    console.log('adding moon ' + m)
+                    this.moons[m] = new Moon(this.scene)//, this.physics)
+                }
+                this.moons[m].updateLerps(gameData.moons[m])
             })
             ;(document.getElementById('pingStats') as HTMLDivElement).innerHTML =
                 pingStatsHtml

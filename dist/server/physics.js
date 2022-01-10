@@ -28,12 +28,13 @@ const path_1 = __importDefault(require("path"));
 const fs_1 = __importDefault(require("fs"));
 const THREE = __importStar(require("three"));
 const OBJLoader_js_1 = require("./OBJLoader.js");
+const moon_1 = __importDefault(require("./moon"));
 class Physics {
     constructor(io) {
         this.world = new CANNON.World();
         this.earthSphere = new THREE.Mesh();
         this.earthBody = new CANNON.Body();
-        this.moon = {};
+        this.moons = {};
         this.io = io;
         const loader = new OBJLoader_js_1.OBJLoader();
         const data = fs_1.default.readFileSync(path_1.default.resolve(__dirname, '../client/models/topoEarth_3.obj'), { encoding: 'utf8', flag: 'r' });
@@ -57,6 +58,9 @@ class Physics {
                 this.world.addBody(this.earthBody);
             }
         });
+        for (let i = 0; i < 10; i++) {
+            this.moons[i] = new moon_1.default(this.world);
+        }
         this.world.addEventListener('postStep', () => {
             // Gravity towards (0,0,0)
             this.world.bodies.forEach((b) => {

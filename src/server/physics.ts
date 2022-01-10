@@ -13,7 +13,7 @@ export default class Physics {
     earthSphere = new THREE.Mesh()
     earthBody = new CANNON.Body()
 
-    moon: { [id: string]: Moon } = {}
+    public moons: { [id: string]: Moon } = {}
 
     io: socketIO.Server
     constructor(io: socketIO.Server) {
@@ -46,6 +46,10 @@ export default class Physics {
                 this.world.addBody(this.earthBody)
             }
         })
+
+        for (let i = 0; i < 10; i++) {
+            this.moons[i] = new Moon(this.world)
+        }
 
         this.world.addEventListener('postStep', () => {
             // Gravity towards (0,0,0)

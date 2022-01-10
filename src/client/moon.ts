@@ -17,8 +17,22 @@ export default class Moon {
         scene.add(this.mesh)
     }
 
-    update() {}
-    
+    updateLerps(gameData: any) {
+        this.mesh.position.lerp(
+            new THREE.Vector3(gameData.p.x, gameData.p.y, gameData.p.z),
+            0.2
+        )
+        this.mesh.quaternion.slerp(
+            new THREE.Quaternion(
+                gameData.q.x,
+                gameData.q.y,
+                gameData.q.z,
+                gameData.q.w
+            ),
+            0.2
+        )
+    }
+
     // updateData(gameData: any) {
     //     this.targetPos.set(gameData.p.x, gameData.p.y, gameData.p.z)
     //     this.targetQuat.set(gameData.q.x, gameData.q.y, gameData.q.z, gameData.q.w)
