@@ -1,8 +1,10 @@
 import socketIO from 'socket.io'
 import Player from './player'
+import Physics from './physics'
 
 export default class Game {
     io: socketIO.Server
+    physics: Physics
 
     gameClock = 1
     gamePhase = 0 //0=closed, 1=open
@@ -20,6 +22,7 @@ export default class Game {
 
     constructor(io: socketIO.Server) {
         this.io = io
+        this.physics = new Physics(io)
 
         this.io.on('connection', (socket: any) => {
             this.players[socket.id] = new Player()
@@ -103,6 +106,10 @@ export default class Game {
                 //obstacles: this.obstacles,
             })
         }, 50)
+
+        setInterval(() => {
+            this.physics.world.step(0.025)
+        }, 25)
 
         setInterval(() => {
             this.gameClock -= 1

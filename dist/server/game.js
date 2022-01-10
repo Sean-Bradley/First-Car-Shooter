@@ -4,6 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const player_1 = __importDefault(require("./player"));
+const physics_1 = __importDefault(require("./physics"));
 class Game {
     constructor(io) {
         this.gameClock = 1;
@@ -45,6 +46,7 @@ class Game {
             this.winnersCalculated = true;
         };
         this.io = io;
+        this.physics = new physics_1.default(io);
         this.io.on('connection', (socket) => {
             this.players[socket.id] = new player_1.default();
             this.players[socket.id].sn = 'Guest' + this.playerCount++;
@@ -114,6 +116,9 @@ class Game {
                 //obstacles: this.obstacles,
             });
         }, 50);
+        setInterval(() => {
+            this.physics.world.step(0.025);
+        }, 25);
         setInterval(() => {
             this.gameClock -= 1;
             if (this.gameClock < -5) {

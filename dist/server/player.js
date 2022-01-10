@@ -25,6 +25,7 @@ class Player {
             { p: { x: 0, y: 0, z: 0 }, q: { x: 0, y: 0, z: 0, w: 0 } },
             { p: { x: 0, y: 0, z: 0 }, q: { x: 0, y: 0, z: 0, w: 0 } },
         ]; //bullets
+        this.m = [{ p: { x: 0, y: 0, z: 0 }, q: { x: 0, y: 0, z: 0, w: 0 } }]; //moons
         this.t = -1; //ping timestamp
     }
 }
