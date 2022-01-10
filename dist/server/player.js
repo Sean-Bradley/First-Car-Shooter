@@ -3,8 +3,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 class Player {
     constructor() {
         //public bodyId = -1
-        this.screenName = '';
-        //public canJump = true
+        this.sn = ''; //screenName
+        this.e = true; //enabled
         this.s = 0; //score
         this.p = { x: 0, y: 0, z: 0 }; //position
         this.q = { x: 0, y: 0, z: 0, w: 0 }; //quaternion
@@ -21,9 +21,9 @@ class Player {
             { p: { x: 0, y: 0, z: 0 }, q: { x: 0, y: 0, z: 0, w: 0 } },
         ]; //wheels
         this.b = [
-            { p: { x: 0, y: 0, z: 0 }, q: { x: 0, y: 0, z: 0, w: 0 }, c: -1 },
-            { p: { x: 0, y: 0, z: 0 }, q: { x: 0, y: 0, z: 0, w: 0 }, c: -1 },
-            { p: { x: 0, y: 0, z: 0 }, q: { x: 0, y: 0, z: 0, w: 0 }, c: -1 },
+            { p: { x: 0, y: 0, z: 0 }, q: { x: 0, y: 0, z: 0, w: 0 } },
+            { p: { x: 0, y: 0, z: 0 }, q: { x: 0, y: 0, z: 0, w: 0 } },
+            { p: { x: 0, y: 0, z: 0 }, q: { x: 0, y: 0, z: 0, w: 0 } },
         ]; //bullets
         this.t = -1; //ping timestamp
     }

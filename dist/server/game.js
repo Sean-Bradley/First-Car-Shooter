@@ -29,25 +29,25 @@ class Game {
                 }
             });
             if (highestScore > 0) {
-                this.gameWinner = highestScorePlayer.screenName;
+                this.gameWinner = highestScorePlayer.sn;
                 this.resentWinners.push({
-                    screenName: highestScorePlayer.screenName,
+                    screenName: highestScorePlayer.sn,
                     score: highestScore,
                 });
                 while (this.resentWinners.length > 10) {
                     this.resentWinners.shift();
                 }
-                this.io.emit('winner', highestScorePlayer.screenName, this.resentWinners);
+                this.io.emit('winner', highestScorePlayer.sn, this.resentWinners);
             }
             this.winnersCalculated = true;
         };
         this.io = io;
         this.io.on('connection', (socket) => {
             this.players[socket.id] = new player_1.default();
-            this.players[socket.id].screenName = 'Guest' + this.playerCount++;
+            this.players[socket.id].sn = 'Guest' + this.playerCount++;
             //console.log(this.players)
             console.log('a user connected : ' + socket.id);
-            socket.emit('joined', socket.id, this.players[socket.id].screenName, this.resentWinners);
+            socket.emit('joined', socket.id, this.players[socket.id].sn, this.resentWinners);
             socket.on('disconnect', () => {
                 console.log('socket disconnected : ' + socket.id);
                 if (this.players && this.players[socket.id]) {
@@ -72,20 +72,34 @@ class Game {
                     this.players[socket.id].w[3].p = message.w[3].p;
                     this.players[socket.id].w[3].q = message.w[3].q;
                     this.players[socket.id].b[0].p = message.b[0].p;
-                    this.players[socket.id].b[0].c = message.b[0].c;
+                    //this.players[socket.id].b[0].c = message.b[0].c
                     this.players[socket.id].b[1].p = message.b[1].p;
-                    this.players[socket.id].b[1].c = message.b[1].c;
+                    //this.players[socket.id].b[1].c = message.b[1].c
                     this.players[socket.id].b[2].p = message.b[2].p;
-                    this.players[socket.id].b[2].c = message.b[2].c;
+                    //this.players[socket.id].b[2].c = message.b[2].c
                 }
             });
             socket.on('updateScreenName', (screenName) => {
                 if (screenName.match(/^[0-9a-zA-Z]+$/) && screenName.length <= 12) {
-                    this.players[socket.id].screenName = screenName;
+                    this.players[socket.id].sn = screenName;
                 }
             });
-            socket.on('shoot', () => {
-                console.log('shoot from ' + this.players[socket.id].screenName);
+            // socket.on('shoot', () => {
+            //     console.log('shoot from ' + this.players[socket.id].sn)
+            // })
+            socket.on('hit', (p, pos, dir) => {
+                console.log('notfying hit');
+                // console.log(who)
+                // console.log(p)
+                //console.log(this.players[who])
+                if (this.players[p].e) {
+                    io.emit('hit', { p: p, pos: pos, dir: dir });
+                    this.players[p].e = false;
+                    this.players[socket.id].s += 100;
+                }
+            });
+            socket.on('enable', () => {
+                this.players[socket.id].e = true;
             });
         });
         setInterval(() => {

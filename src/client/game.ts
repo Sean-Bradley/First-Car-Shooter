@@ -1,11 +1,15 @@
 import * as THREE from 'three'
 import UI from './ui'
 import Earth from './earth'
+import * as CANNON from 'cannon-es'
 import Physics from './physics'
+import CannonDebugRenderer from './utils/cannonDebugRenderer'
 import Car from './car'
 //import Moon from './moon'
 import { io, Socket } from 'socket.io-client'
 import Player from './player'
+import Explosion from './explosion'
+import CannonUtils from './utils/cannonUtils'
 
 export default class Game {
     scene: THREE.Scene
@@ -14,6 +18,7 @@ export default class Game {
     car: Car
     earth: Earth
     physics: Physics
+    cannonDebugRenderer: CannonDebugRenderer
     ui: UI
     socket: Socket
     updateInterval: any //used to update server
@@ -21,7 +26,7 @@ export default class Game {
     gamePhase: number = 0
     timestamp = 0
     players: { [id: string]: Player } = {}
-
+    explosions: Explosion[]
     //moons: { [id: string]: Moon } = {}
 
     constructor(
@@ -34,11 +39,18 @@ export default class Game {
         this.renderer = renderer
         this.ui = new UI(this, renderer.domElement)
         this.physics = new Physics()
-        this.car = new Car(scene, camera, this.physics)
-        this.earth = new Earth(this.scene, this.physics, this.car)
-
         this.socket = io()
-
+        this.car = new Car(scene, camera, this.physics, this.players, this.socket)
+        this.earth = new Earth(this.scene, this.physics, this.car)
+        this.cannonDebugRenderer = new CannonDebugRenderer(
+            this.scene,
+            this.physics.world
+        )
+        this.explosions = [
+            new Explosion(new THREE.Color(0xff0000), this.scene),
+            new Explosion(new THREE.Color(0x00ff00), this.scene),
+            new Explosion(new THREE.Color(0x0000ff), this.scene),
+        ]
         //sockets
         this.socket.on('connect', function () {
             console.log('connected')
@@ -89,20 +101,38 @@ export default class Game {
                         b: [
                             {
                                 p: this.car.bulletMesh[0].position,
-                                c: this.car.lastBulletCounter[0]
+                                //c: this.car.lastBulletCounter[0]
                             },
                             {
                                 p: this.car.bulletMesh[1].position,
-                                c: this.car.lastBulletCounter[1]
+                                //c: this.car.lastBulletCounter[1]
                             },
                             {
                                 p: this.car.bulletMesh[2].position,
-                                c: this.car.lastBulletCounter[2]
+                                //c: this.car.lastBulletCounter[2]
                             },
                         ],
                     })
                 }, 50)
                 this.ui.updateScoreBoard(recentWinners)
+            }
+        )
+
+        this.socket.on(
+            'hit',
+            (message: { p: string; pos: THREE.Vector3; dir: CANNON.Vec3 }) => {
+                // console.log('hit ' + message.who)
+                // console.log('hit ' + message.p)
+                if (message.p === this.myId) {
+                    //console.log(message.dir)
+                    this.car.explode(
+                        new CANNON.Vec3(message.dir.x, message.dir.y, message.dir.z)
+                    )
+                }
+                //console.log(message.pos.x, message.pos.y, message.pos.z)
+                this.explosions.forEach((e) => {
+                    e.explode(message.pos)
+                })
             }
         )
 
@@ -187,7 +217,7 @@ export default class Game {
             Object.keys(gameData.players).forEach((p) => {
                 this.timestamp = Date.now()
                 pingStatsHtml +=
-                    gameData.players[p].screenName +
+                    gameData.players[p].sn +
                     ' ' +
                     gameData.players[p].s +
                     ' ' +
@@ -196,9 +226,9 @@ export default class Game {
                 if (p !== this.myId) {
                     if (!this.players[p]) {
                         console.log('adding player ' + p)
-                        this.players[p] = new Player(this.scene)
+                        this.players[p] = new Player(this.scene, this.physics)
                     }
-                    this.players[p].update(gameData.players[p])
+                    this.players[p].updateLerps(gameData.players[p])
                 }
             })
             ;(document.getElementById('pingStats') as HTMLDivElement).innerHTML =
@@ -209,18 +239,21 @@ export default class Game {
     public update = (delta: number) => {
         this.physics.world.step(delta)
 
+        //this.cannonDebugRenderer.update()
+
         this.car.update()
+
+        Object.keys(this.players).forEach((p) => {
+            this.players[p].update()
+        })
 
         this.earth.update(delta)
 
-        // Object.keys(this.cars).forEach((c) => {
-        //     this.cars[c].updatePositionQuaternion()
-        // })
         // Object.keys(this.moons).forEach((m) => {
         //     this.moons[m].update()
         // })
-        // this.explosions.forEach((e) => {
-        //     e.update()
-        // })
+        this.explosions.forEach((e) => {
+            e.update()
+        })
     }
 }

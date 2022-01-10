@@ -7,7 +7,7 @@ import Cosmos from './cosmos'
 import Car from './car'
 
 export default class Earth {
-    mesh = new THREE.Group()
+    mesh = new THREE.Mesh()
     lightPivot: THREE.Object3D
     earthBody = new CANNON.Body()
 
@@ -17,7 +17,7 @@ export default class Earth {
         const earthTexture = new THREE.TextureLoader().load(
             'img/worldColour.5400x2700.jpg'
         )
-        const earthMaterial = new THREE.MeshPhongMaterial()//{ wireframe: true })
+        const earthMaterial = new THREE.MeshPhongMaterial() //{ wireframe: true })
         earthMaterial.map = earthTexture
 
         const objLoader = new OBJLoader()
@@ -30,6 +30,7 @@ export default class Earth {
                         m.receiveShadow = true
                         m.castShadow = true
                         m.material = earthMaterial
+                        this.mesh = m
 
                         const shape = CannonUtils.CreateTrimesh(m.geometry)
                         this.earthBody = new CANNON.Body({
@@ -46,33 +47,10 @@ export default class Earth {
                         this.earthBody.quaternion.w = m.quaternion.w
                         physics.world.addBody(this.earthBody)
 
-                        const raycaster = new THREE.Raycaster()
-
-                        const outside = new THREE.Vector3(
-                            Math.random() * 0.2 - 0.1,
-                            1,
-                            Math.random() * 0.2 - 0.1
-                        ).normalize()
-
-                        const inside = new THREE.Vector3()
-                            .subVectors(new THREE.Vector3(), outside)
-                            .normalize()
-                        outside.multiplyScalar(200)
-                        raycaster.set(outside, inside)
-
-                        const intersects = raycaster.intersectObject(m, false)
-                        let startPosition = new THREE.Vector3()
-                        if (intersects.length > 0) {
-                            startPosition = intersects[0].point.addScaledVector(
-                                outside.normalize(),
-                                2
-                            )
-                        }
+                        const startPosition = this.getSpawnPosition()
                         car.spawn(startPosition)
                     }
                 })
-
-                this.mesh = obj
 
                 scene.add(obj)
             },
@@ -105,6 +83,38 @@ export default class Earth {
         scene.add(this.lightPivot)
 
         new Cosmos(scene, light)
+    }
+
+    getSpawnPosition() {
+        const raycaster = new THREE.Raycaster()
+
+        // const outside = new THREE.Vector3(
+        //     Math.random() * 0.2 - 0.1,
+        //     1,
+        //     Math.random() * 0.2 - 0.1
+        // ).normalize()
+
+        const outside = new THREE.Vector3(
+            Math.random() * 2 - 1,
+            Math.random() * 2 - 1,
+            Math.random() * 2 - 1
+        ).normalize()
+
+        const inside = new THREE.Vector3()
+            .subVectors(new THREE.Vector3(), outside)
+            .normalize()
+        outside.multiplyScalar(200)
+        raycaster.set(outside, inside)
+
+        const intersects = raycaster.intersectObject(this.mesh, false)
+        let startPosition = new THREE.Vector3()
+        if (intersects.length > 0) {
+            startPosition = intersects[0].point.addScaledVector(
+                outside.normalize(),
+                2
+            )
+        }
+        return startPosition
     }
 
     update(delta: number) {

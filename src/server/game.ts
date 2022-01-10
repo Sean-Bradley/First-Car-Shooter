@@ -23,14 +23,14 @@ export default class Game {
 
         this.io.on('connection', (socket: any) => {
             this.players[socket.id] = new Player()
-            this.players[socket.id].screenName = 'Guest' + this.playerCount++
+            this.players[socket.id].sn = 'Guest' + this.playerCount++
 
             //console.log(this.players)
             console.log('a user connected : ' + socket.id)
             socket.emit(
                 'joined',
                 socket.id,
-                this.players[socket.id].screenName,
+                this.players[socket.id].sn,
                 this.resentWinners
             )
 
@@ -59,22 +59,41 @@ export default class Game {
                     this.players[socket.id].w[3].p = message.w[3].p
                     this.players[socket.id].w[3].q = message.w[3].q
                     this.players[socket.id].b[0].p = message.b[0].p
-                    this.players[socket.id].b[0].c = message.b[0].c
+                    //this.players[socket.id].b[0].c = message.b[0].c
                     this.players[socket.id].b[1].p = message.b[1].p
-                    this.players[socket.id].b[1].c = message.b[1].c
+                    //this.players[socket.id].b[1].c = message.b[1].c
                     this.players[socket.id].b[2].p = message.b[2].p
-                    this.players[socket.id].b[2].c = message.b[2].c
+                    //this.players[socket.id].b[2].c = message.b[2].c
                 }
             })
 
             socket.on('updateScreenName', (screenName: string) => {
                 if (screenName.match(/^[0-9a-zA-Z]+$/) && screenName.length <= 12) {
-                    this.players[socket.id].screenName = screenName
+                    this.players[socket.id].sn = screenName
                 }
             })
 
-            socket.on('shoot', () => {
-                console.log('shoot from ' + this.players[socket.id].screenName)
+            // socket.on('shoot', () => {
+            //     console.log('shoot from ' + this.players[socket.id].sn)
+            // })
+
+            socket.on(
+                'hit',
+                (p: string, pos: THREE.Vector3, dir: any) => {
+                    console.log('notfying hit')
+                    // console.log(who)
+                    // console.log(p)
+                    //console.log(this.players[who])
+                    if (this.players[p].e) {
+                        io.emit('hit', { p: p, pos: pos, dir: dir })
+                        this.players[p].e = false
+                        this.players[socket.id].s += 100
+                    }
+                }
+            )
+
+            socket.on('enable', () => {
+                this.players[socket.id].e = true
             })
         })
 
@@ -118,9 +137,9 @@ export default class Game {
         })
 
         if (highestScore > 0) {
-            this.gameWinner = highestScorePlayer.screenName
+            this.gameWinner = highestScorePlayer.sn
             this.resentWinners.push({
-                screenName: highestScorePlayer.screenName,
+                screenName: highestScorePlayer.sn,
                 score: highestScore,
             })
 
@@ -128,11 +147,7 @@ export default class Game {
                 this.resentWinners.shift()
             }
 
-            this.io.emit(
-                'winner',
-                highestScorePlayer.screenName,
-                this.resentWinners
-            )
+            this.io.emit('winner', highestScorePlayer.sn, this.resentWinners)
         }
 
         this.winnersCalculated = true

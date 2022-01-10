@@ -53,10 +53,10 @@ export default class UI {
             var letterNumber = /^[0-9a-zA-Z]+$/
             var value = (e.target as HTMLFormElement).value
             if (value.match(letterNumber) && value.length <= 12) {
-                // game.socket.emit(
-                //     'updateScreenName',
-                //     (e.target as HTMLFormElement).value
-                // )
+                game.socket.emit(
+                    'updateScreenName',
+                    (e.target as HTMLFormElement).value
+                )
             } else {
                 alert('Alphanumeric screen names only please. Max length 12')
             }
@@ -130,6 +130,7 @@ export default class UI {
         }
 
         setInterval(() => {
+            //key presses are checked here once every 50ms.
             const car = this.game.car
             car.thrusting = false
             car.steering = false
@@ -181,7 +182,7 @@ export default class UI {
     onClick = () => {
         //this.game.socket.emit('shoot')
         this.game.car.shoot()
-        console.log("shoot")
+        //console.log("shoot")
         return false
     }
 
@@ -205,5 +206,13 @@ export default class UI {
 
     onDocumentKey = (e: KeyboardEvent) => {
         this.keyMap[e.key] = e.type === 'keydown'
+
+        if (this.keyMap['r']) {
+            if (!this.game.car.enabled) {
+                this.game.car.fix()
+            }
+            const pos = this.game.earth.getSpawnPosition()
+            this.game.car.spawn(pos)
+        }
     }
 }

@@ -2,10 +2,14 @@ import * as THREE from 'three'
 import * as CANNON from 'cannon-es'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader'
 import Physics from './physics'
+import Player from './player'
+import { Socket } from 'socket.io-client'
 
 export default class Car {
     camera: THREE.PerspectiveCamera
     physics: Physics
+    socket: Socket
+
     frameMesh = new THREE.Mesh()
     turretMesh = new THREE.Mesh()
     turretPivot = new THREE.Object3D()
@@ -35,7 +39,7 @@ export default class Car {
 
     bulletMesh = [new THREE.Mesh(), new THREE.Mesh(), new THREE.Mesh()]
     bulletBody: CANNON.Body[] = []
-    public lastBulletCounter = [-1, -1, -1] //used to decide if a bullet should instantly be repositioned or smoothly lerped
+    //public lastBulletCounter = [-1, -1, -1] //used to decide if a bullet should instantly be repositioned or smoothly lerped
     bulletId = -1
 
     public thrusting = false
@@ -43,16 +47,24 @@ export default class Car {
     public forwardVelocity = 0
     public rightVelocity = 0
 
-    public partIds: number[] = []
+    //public partIds: number[] = []
     public enabled = true
+
+    public score: number = 0
+
+    players: { [id: string]: Player }
 
     constructor(
         scene: THREE.Scene,
         camera: THREE.PerspectiveCamera,
-        physics: Physics
+        physics: Physics,
+        players: { [id: string]: Player },
+        socket: Socket
     ) {
         this.camera = camera
         this.physics = physics
+        this.players = players
+        this.socket = socket
 
         const pipesMaterial = new THREE.MeshStandardMaterial()
         pipesMaterial.color = new THREE.Color('#ffffff')
@@ -107,8 +119,8 @@ export default class Car {
                         this.wheelRFMesh = this.wheelLFMesh.clone()
                         this.wheelLBMesh = this.wheelLFMesh.clone()
                         this.wheelRBMesh = this.wheelLFMesh.clone()
-                        this.wheelLFMesh.scale.setScalar(0.85)
-                        this.wheelRFMesh.scale.setScalar(0.85)
+                        this.wheelLFMesh.scale.setScalar(0.87)
+                        this.wheelRFMesh.scale.setScalar(0.87)
                         scene.add(this.wheelLFMesh)
                         scene.add(this.wheelRFMesh)
                         scene.add(this.wheelLBMesh)
@@ -130,25 +142,27 @@ export default class Car {
             }
         )
         this.frameBody = new CANNON.Body({ mass: 0.1 })
-        this.frameBody.addShape(new CANNON.Sphere(0.3), new CANNON.Vec3(0, 0, -1.2))
         this.frameBody.addShape(
             new CANNON.Sphere(0.5),
-            new CANNON.Vec3(0, 0.2, 0.8)
+            new CANNON.Vec3(0, 0.2, 0.3)
         )
+        this.frameBody.addShape(new CANNON.Sphere(0.2), new CANNON.Vec3(0, 0, -1.3))
+        this.frameBody.addShape(new CANNON.Sphere(0.2), new CANNON.Vec3(0, 0, 1.3))
         this.frameBody.addShape(new CANNON.Sphere(0.1), new CANNON.Vec3(1, 0, 0))
         this.frameBody.addShape(new CANNON.Sphere(0.1), new CANNON.Vec3(-1, 0, 0))
-        this.frameBody.position.set(0, 0, 0)
+        this.frameBody.position.set(0, 1, 0)
         this.physics.world.addBody(this.frameBody)
-        this.partIds.push(this.frameBody.id)
+        //this.partIds.push(this.frameBody.id)
 
         this.turretBody = new CANNON.Body({ mass: 0 })
-        this.turretBody.addShape(
-            new CANNON.Sphere(0.2),
-            new CANNON.Vec3(0, 0, -1.0)
-        )
-        this.turretBody.position.set(0, 2, 0)
+        // this.turretBody.addShape(
+        //     new CANNON.Sphere(0.2),
+        //     new CANNON.Vec3(0, 0, -1.0)
+        // )
+        //this.turretBody.sleep()
+        //this.turretBody.position.set(0, 3, 0)
         this.physics.world.addBody(this.turretBody)
-        this.partIds.push(this.turretBody.id)
+        //this.partIds.push(this.turretBody.id)
 
         const wheelLFShape = new CANNON.Sphere(0.35)
         this.wheelLFBody = new CANNON.Body({
@@ -158,7 +172,7 @@ export default class Car {
         this.wheelLFBody.addShape(wheelLFShape)
         this.wheelLFBody.position.set(-2, 0, -2)
         this.physics.world.addBody(this.wheelLFBody)
-        this.partIds.push(this.wheelLFBody.id)
+        //this.partIds.push(this.wheelLFBody.id)
 
         const wheelRFShape = new CANNON.Sphere(0.35)
         this.wheelRFBody = new CANNON.Body({
@@ -168,7 +182,7 @@ export default class Car {
         this.wheelRFBody.addShape(wheelRFShape)
         this.wheelRFBody.position.set(2, 0, -2)
         this.physics.world.addBody(this.wheelRFBody)
-        this.partIds.push(this.wheelRFBody.id)
+        //this.partIds.push(this.wheelRFBody.id)
 
         const wheelLBShape = new CANNON.Sphere(0.4)
         this.wheelLBBody = new CANNON.Body({
@@ -178,7 +192,7 @@ export default class Car {
         this.wheelLBBody.addShape(wheelLBShape)
         this.wheelLBBody.position.set(-2, 0, 2)
         this.physics.world.addBody(this.wheelLBBody)
-        this.partIds.push(this.wheelLBBody.id)
+        //this.partIds.push(this.wheelLBBody.id)
 
         const wheelRBShape = new CANNON.Sphere(0.4)
         this.wheelRBBody = new CANNON.Body({
@@ -188,7 +202,7 @@ export default class Car {
         this.wheelRBBody.addShape(wheelRBShape)
         this.wheelRBBody.position.set(2, 0, 2)
         this.physics.world.addBody(this.wheelRBBody)
-        this.partIds.push(this.wheelRBBody.id)
+        //this.partIds.push(this.wheelRBBody.id)
 
         const leftFrontAxis = new CANNON.Vec3(1, 0, 0)
         const rightFrontAxis = new CANNON.Vec3(1, 0, 0)
@@ -246,6 +260,53 @@ export default class Car {
             this.bulletBody[i].addShape(new CANNON.Sphere(0.15))
             this.bulletBody[i].sleep()
             this.physics.world.addBody(this.bulletBody[i])
+
+            this.bulletBody[i].addEventListener('collide', (e: any) => {
+                let contactBody: CANNON.Body
+                let contactPoint: CANNON.Vec3
+                if (this.bulletBody[i].id === e.contact.bi.id) {
+                    contactBody = e.contact.bj
+                    contactPoint = e.contact.rj
+                } else if (this.bulletBody[i].id === e.contact.bj.id) {
+                    contactBody = e.contact.bi
+                    contactPoint = e.contact.ri
+                }
+
+                Object.keys(this.players).forEach((p) => {
+                    if (this.players[p].enabled) {
+                        if (
+                            this.players[p].collisionPartIds.includes(
+                                contactBody.id
+                            )
+                        ) {
+                            console.log('bullet hit a car')
+
+                            //this.score += 100  // score is awarded server side
+
+                            const pointOfImpact = (
+                                contactBody.position as CANNON.Vec3
+                            ).vadd(contactPoint)
+                            const v = contactBody.position.vsub(pointOfImpact)
+
+                            if (this.players[p].enabled) {
+                                this.socket.emit(
+                                    'hit',
+                                    p,
+                                    this.bulletMesh[i].position,
+                                    v
+                                )
+                                this.players[p].enabled = false
+
+
+                                // this.players[p].collisionPartIds = []
+                                // setTimeout(() => {
+                                //     this.players[p].collisionPartIds = this.players[p].partIds.slice(0) // a simple clone technique
+                                // }, 1000)
+                            }
+                        }
+                    }
+                })
+            })
         }
     }
 
@@ -254,7 +315,7 @@ export default class Car {
         if (this.bulletId > 2) {
             this.bulletId = 0
         }
-        this.lastBulletCounter[this.bulletId] += 1
+        //this.lastBulletCounter[this.bulletId] += 1
 
         return this.bulletId
     }
@@ -274,7 +335,7 @@ export default class Car {
                 )
                 .normalize()
             v.applyQuaternion(q)
-            v.multiplyScalar(2)
+            v.multiplyScalar(1.5)
             v.add(
                 new THREE.Vector3(
                     this.turretBody.position.x,
@@ -347,6 +408,7 @@ export default class Car {
         this.wheelRBBody.quaternion.copy(q)
 
         //console.log(this.wheelRBBody.quaternion)
+        //this.enabled = true
     }
 
     update() {
@@ -429,5 +491,32 @@ export default class Car {
             //this.player.b[i].c = this.lastBulletCounter[i]
         }
         //console.log(this.bulletMesh[0].position.x)
+    }
+
+    explode(v: CANNON.Vec3) {
+        //removes all constraints for this car so that parts separate
+        this.physics.world.removeConstraint(this.constraintLF)
+        this.physics.world.removeConstraint(this.constraintRF)
+        this.physics.world.removeConstraint(this.constraintLB)
+        this.physics.world.removeConstraint(this.constraintRB)
+        this.enabled = false
+
+        this.wheelLFBody.velocity = v.scale(Math.random() * 25)
+        this.wheelRFBody.velocity = v.scale(Math.random() * 25)
+        this.wheelLBBody.velocity = v.scale(Math.random() * 25)
+        this.wheelRBBody.velocity = v.scale(Math.random() * 25)
+        this.frameBody.velocity = v.scale(Math.random() * 100)
+    }
+
+    fix() {
+        if (this.physics.world.constraints.length === 0) {
+            this.physics.world.addConstraint(this.constraintLF)
+            this.physics.world.addConstraint(this.constraintRF)
+            this.physics.world.addConstraint(this.constraintLB)
+            this.physics.world.addConstraint(this.constraintRB)
+            this.enabled = true
+
+            this.socket.emit('enable')
+        }
     }
 }
