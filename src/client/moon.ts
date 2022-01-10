@@ -20,7 +20,7 @@ export default class Moon {
     updateLerps(gameData: any) {
         this.mesh.position.lerp(
             new THREE.Vector3(gameData.p.x, gameData.p.y, gameData.p.z),
-            0.2
+            0.1
         )
         this.mesh.quaternion.slerp(
             new THREE.Quaternion(
@@ -29,7 +29,7 @@ export default class Moon {
                 gameData.q.z,
                 gameData.q.w
             ),
-            0.2
+            0.1
         )
     }
 
