@@ -12,7 +12,7 @@ export default class Physics {
         //this.theCarGame = theCarGame
 
         this.world = new CANNON.World()
-        ;(this.world.solver as CANNON.GSSolver).iterations = 5
+        ;(this.world.solver as CANNON.GSSolver).iterations = 10
         this.world.gravity.set(0, -1, 0)
 
         this.groundMaterial = new CANNON.Material('groundMaterial')
