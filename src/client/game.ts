@@ -16,6 +16,7 @@ export default class Game {
     scene: THREE.Scene
     camera: THREE.PerspectiveCamera
     renderer: THREE.WebGLRenderer
+    listener: THREE.AudioListener
     car: Car
     earth: Earth
     physics: Physics
@@ -29,19 +30,29 @@ export default class Game {
     players: { [id: string]: Player } = {}
     explosions: Explosion[]
     moons: { [id: string]: Moon } = {}
+    explosionSound: THREE.PositionalAudio
 
     constructor(
         scene: THREE.Scene,
         camera: THREE.PerspectiveCamera,
-        renderer: THREE.WebGLRenderer
+        renderer: THREE.WebGLRenderer,
+        listener: THREE.AudioListener
     ) {
         this.scene = scene
         this.camera = camera
         this.renderer = renderer
+        this.listener = listener
         this.ui = new UI(this, renderer.domElement)
         this.physics = new Physics()
         this.socket = io()
-        this.car = new Car(scene, camera, this.physics, this.players, this.socket)
+        this.car = new Car(
+            scene,
+            camera,
+            this.physics,
+            this.players,
+            this.socket,
+            this.listener
+        )
         this.earth = new Earth(this.scene, this.physics, this.car)
         this.cannonDebugRenderer = new CannonDebugRenderer(
             this.scene,
@@ -52,6 +63,14 @@ export default class Game {
             new Explosion(new THREE.Color(0x00ff00), this.scene),
             new Explosion(new THREE.Color(0x0000ff), this.scene),
         ]
+        const audioLoader = new THREE.AudioLoader()
+        const explosionSound = new THREE.PositionalAudio(this.listener)
+        audioLoader.load('sounds/explosion.ogg', (buffer) => {
+            explosionSound.setBuffer(buffer)
+            explosionSound.setRefDistance(20)
+        })
+        this.explosionSound = explosionSound
+
         //sockets
         this.socket.on('connect', function () {
             console.log('connected')
@@ -139,6 +158,12 @@ export default class Game {
                     this.explosions.forEach((e) => {
                         e.explode(message.pos)
                     })
+                    this.explosionSound.position.copy(message.pos)
+                    if (this.explosionSound.isPlaying) {
+                        this.explosionSound.stop()
+                    }
+                    this.explosionSound.play()
+                    console.log('playing explosion sound')
                 }
             }
         )
@@ -252,7 +277,7 @@ export default class Game {
             Object.keys(gameData.moons).forEach((m) => {
                 if (!this.moons[m]) {
                     console.log('adding moon ' + m)
-                    this.moons[m] = new Moon(this.scene)//, this.physics)
+                    this.moons[m] = new Moon(this.scene) //, this.physics)
                 }
                 this.moons[m].updateLerps(gameData.moons[m])
             })

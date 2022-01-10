@@ -102,6 +102,7 @@ export default class UI {
             this.recentWinnersTable.style.display = 'block'
             this.menuActive = false
 
+            this.game.car.carSound.play()
             // Object.keys(this.game.cars).forEach((c) => {
             //     this.game.cars[c].carSound.play()
             // })
@@ -124,6 +125,8 @@ export default class UI {
             this.gameClosedAlert.style.display = 'none'
             this.newGameAlert.style.display = 'none'
             this.menuActive = true
+
+            this.game.car.carSound.stop()
             // Object.keys(this.game.cars).forEach((c) => {
             //     this.game.cars[c].carSound.stop()
             // })

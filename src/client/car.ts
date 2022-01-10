@@ -59,17 +59,38 @@ export default class Car {
 
     upsideDownCounter = -1
 
+    listener: THREE.AudioListener
+    carSound: THREE.PositionalAudio
+    shootSound: THREE.PositionalAudio
+
     constructor(
         scene: THREE.Scene,
         camera: THREE.PerspectiveCamera,
         physics: Physics,
         players: { [id: string]: Player },
-        socket: Socket
+        socket: Socket,
+        listener: THREE.AudioListener
     ) {
         this.camera = camera
         this.physics = physics
         this.players = players
         this.socket = socket
+        this.listener = listener
+
+        const audioLoader = new THREE.AudioLoader()
+        const carSound = new THREE.PositionalAudio(this.listener)
+        audioLoader.load('sounds/engine.wav', (buffer) => {
+            carSound.setBuffer(buffer)
+            carSound.setVolume(0.5)
+        })
+        this.carSound = carSound
+
+        const shootSound = new THREE.PositionalAudio(this.listener)
+        audioLoader.load('sounds/rocket.ogg', (buffer) => {
+            shootSound.setBuffer(buffer)
+            shootSound.setVolume(2)
+        })
+        this.shootSound = shootSound
 
         const pipesMaterial = new THREE.MeshStandardMaterial()
         pipesMaterial.color = new THREE.Color('#ffffff')
@@ -85,9 +106,10 @@ export default class Car {
                 this.frameMesh.material = pipesMaterial
                 this.frameMesh.castShadow = true
                 scene.add(this.frameMesh)
-                // this.carSound.loop = true
-                // this.frame.add(this.carSound)
-                // this.frame.add(this.shootSound)
+                this.carSound.loop = true
+                this.frameMesh.add(this.carSound)
+                this.frameMesh.add(this.shootSound)
+
                 this.upVector = new THREE.ArrowHelper(
                     new THREE.Vector3(0, 1, 0),
                     new THREE.Vector3(0, 0, 0),
@@ -392,6 +414,11 @@ export default class Car {
             v.multiplyScalar(40)
             this.bulletBody[bulletId].velocity.set(v.x, v.y, v.z)
             this.bulletBody[bulletId].wakeUp()
+
+            if (this.shootSound.isPlaying) {
+                this.shootSound.stop()
+            }
+            this.shootSound.play()
         }
     }
 
@@ -549,6 +576,8 @@ export default class Car {
             //this.player.b[i].c = this.lastBulletCounter[i]
         }
         //console.log(this.bulletMesh[0].position.x)
+
+        this.carSound.setPlaybackRate(Math.abs(this.forwardVelocity / 50) + Math.random() / 9)
     }
 
     explode(v: CANNON.Vec3) {
