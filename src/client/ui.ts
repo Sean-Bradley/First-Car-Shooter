@@ -8,6 +8,7 @@ export default class UI {
     public menuPanel: HTMLDivElement
     public newGameAlert: HTMLDivElement
     public gameClosedAlert: HTMLDivElement
+    public keyCheckInterval: NodeJS.Timer
 
     rendererDomElement: HTMLCanvasElement
     game: Game
@@ -61,6 +62,55 @@ export default class UI {
                 alert('Alphanumeric screen names only please. Max length 12')
             }
         })
+
+        this.keyCheckInterval = setInterval(() => {
+            //key presses are checked here once every 50ms.
+            const car = this.game.car
+            car.thrusting = false
+            car.steering = false
+            if (this.keyMap['w'] || this.keyMap['ArrowUp']) {
+                if (car.forwardVelocity <= 40.0) car.forwardVelocity += 1.25
+                car.thrusting = true
+            }
+            if (this.keyMap['s'] || this.keyMap['ArrowDown']) {
+                if (car.forwardVelocity >= -20.0) car.forwardVelocity -= 1.25
+                car.thrusting = true
+            }
+            if (this.keyMap['a'] || this.keyMap['ArrowLeft']) {
+                if (car.rightVelocity >= -0.6) car.rightVelocity -= 0.1
+                car.steering = true
+            }
+            if (this.keyMap['d'] || this.keyMap['ArrowRight']) {
+                if (car.rightVelocity <= 0.6) car.rightVelocity += 0.1
+                car.steering = true
+            }
+            if (this.keyMap[' ']) {
+                if (car.forwardVelocity > 0) {
+                    car.forwardVelocity -= 2.5
+                }
+                if (car.forwardVelocity < 0) {
+                    car.forwardVelocity += 2.5
+                }
+            }
+
+            if (!car.thrusting) {
+                //not going forward or backwards so gradually slow down
+                if (car.forwardVelocity > 0) {
+                    car.forwardVelocity -= 0.25
+                }
+                if (car.forwardVelocity < 0) {
+                    car.forwardVelocity += 0.25
+                }
+            }
+            if (!car.steering) {
+                if (car.rightVelocity > 0) {
+                    car.rightVelocity -= 0.05
+                }
+                if (car.rightVelocity < 0) {
+                    car.rightVelocity += 0.05
+                }
+            }
+        }, 50)
     }
 
     updateScoreBoard = (recentWinners: []) => {
@@ -131,55 +181,6 @@ export default class UI {
                 this.game.players[p].carSound.stop()
             })
         }
-
-        setInterval(() => {
-            //key presses are checked here once every 50ms.
-            const car = this.game.car
-            car.thrusting = false
-            car.steering = false
-            if (this.keyMap['w'] || this.keyMap['ArrowUp']) {
-                if (car.forwardVelocity <= 40.0) car.forwardVelocity += 0.75
-                car.thrusting = true
-            }
-            if (this.keyMap['s'] || this.keyMap['ArrowDown']) {
-                if (car.forwardVelocity >= -20.0) car.forwardVelocity -= 0.75
-                car.thrusting = true
-            }
-            if (this.keyMap['a'] || this.keyMap['ArrowLeft']) {
-                if (car.rightVelocity >= -0.6) car.rightVelocity -= 0.1
-                car.steering = true
-            }
-            if (this.keyMap['d'] || this.keyMap['ArrowRight']) {
-                if (car.rightVelocity <= 0.6) car.rightVelocity += 0.1
-                car.steering = true
-            }
-            if (this.keyMap[' ']) {
-                if (car.forwardVelocity > 0) {
-                    car.forwardVelocity -= 2
-                }
-                if (car.forwardVelocity < 0) {
-                    car.forwardVelocity += 2
-                }
-            }
-
-            if (!car.thrusting) {
-                //not going forward or backwards so gradually slow down
-                if (car.forwardVelocity > 0) {
-                    car.forwardVelocity -= 0.25
-                }
-                if (car.forwardVelocity < 0) {
-                    car.forwardVelocity += 0.25
-                }
-            }
-            if (!car.steering) {
-                if (car.rightVelocity > 0) {
-                    car.rightVelocity -= 0.05
-                }
-                if (car.rightVelocity < 0) {
-                    car.rightVelocity += 0.05
-                }
-            }
-        }, 50)
     }
 
     onClick = () => {
@@ -209,7 +210,7 @@ export default class UI {
 
     onDocumentKey = (e: KeyboardEvent) => {
         this.keyMap[e.key] = e.type === 'keydown'
-
+        console.log('keydown')
         if (this.keyMap['r']) {
             if (!this.game.car.enabled) {
                 this.game.car.fix()
