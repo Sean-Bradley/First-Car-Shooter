@@ -6,7 +6,6 @@ import Player from './player'
 import { Socket } from 'socket.io-client'
 import Moon from './moon'
 import Earth from './earth'
-import { TWEEN } from 'three/examples/jsm/libs/tween.module.min'
 import {
     Lensflare,
     LensflareElement,
@@ -123,7 +122,7 @@ export default class Car {
         pipesMaterial.roughness = 0.2
         pipesMaterial.metalness = 1
 
-        const flareTexture = new THREE.TextureLoader().load('img/lensflare0.png')        
+        const flareTexture = new THREE.TextureLoader().load('img/lensflare0.png')
         this.lensflares.forEach((l) => {
             l.addElement(
                 new LensflareElement(
@@ -159,7 +158,7 @@ export default class Car {
                 this.turretMesh.castShadow = true
                 scene.add(this.turretMesh)
 
-                this.chaseCam.position.set(0, 1.5, 4)
+                this.chaseCam.position.set(0, 1.5, 250)
                 this.chaseCamPivot.add(this.chaseCam)
                 this.frameMesh.add(this.chaseCamPivot)
 
@@ -328,6 +327,7 @@ export default class Car {
         for (let i = 0; i < 3; i++) {
             this.bulletBody[i] = new CANNON.Body({ mass: 1 }) //, material: wheelMaterial })
             this.bulletBody[i].addShape(new CANNON.Sphere(0.15))
+            this.bulletBody[i].position.set(i - 1, 1, -1)
             //this.physics.world.addBody(this.bulletBody[i])
 
             this.bulletBody[i].addEventListener('collide', (e: any) => {
@@ -486,11 +486,6 @@ export default class Car {
 
         //this.debugMesh.position.copy(startPosition)
         this.frameMesh.add(this.chaseCamPivot)
-
-        new TWEEN.Tween(this.chaseCam.position)
-            .to({ z: 4 })
-            .easing(TWEEN.Easing.Cubic.Out)
-            .start()
 
         this.enabled = false
         for (let i = 0; i < 3; i++) {

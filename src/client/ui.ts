@@ -1,5 +1,6 @@
 import Car from './car'
 import Game from './game'
+import { TWEEN } from 'three/examples/jsm/libs/tween.module.min'
 
 export default class UI {
     public menuActive: boolean
@@ -156,6 +157,11 @@ export default class UI {
             Object.keys(this.game.players).forEach((p) => {
                 this.game.players[p].carSound.play()
             })
+
+            new TWEEN.Tween(this.game.car.chaseCam.position)
+                .to({ z: 4 })
+                .easing(TWEEN.Easing.Cubic.Out)
+                .start()
         } else {
             this.rendererDomElement.removeEventListener(
                 'mousemove',
@@ -180,6 +186,11 @@ export default class UI {
             Object.keys(this.game.players).forEach((p) => {
                 this.game.players[p].carSound.stop()
             })
+
+            new TWEEN.Tween(this.game.car.chaseCam.position)
+                .to({ z: 250 })
+                .easing(TWEEN.Easing.Cubic.Out)
+                .start()
         }
     }
 
