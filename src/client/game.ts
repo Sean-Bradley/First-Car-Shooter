@@ -55,6 +55,7 @@ export default class Game {
             this.listener
         )
         this.earth = new Earth(this.scene, this.physics, this.car)
+        this.car.earth = this.earth
         this.cannonDebugRenderer = new CannonDebugRenderer(
             this.scene,
             this.physics.world
@@ -142,7 +143,7 @@ export default class Game {
         this.socket.on(
             'hitCar',
             (message: { p: string; pos: THREE.Vector3; dir: CANNON.Vec3 }) => {
-                if ((this.gamePhase = 1)) {
+                if ((this.gamePhase === 1)) {
                     if (message.p === this.myId) {
                         //console.log(message.dir)
                         this.car.explode(
@@ -168,7 +169,7 @@ export default class Game {
         )
 
         this.socket.on('hitMoon', (pos: THREE.Vector3) => {
-            if ((this.gamePhase = 1)) {
+            if ((this.gamePhase === 1)) {
                 this.explosions.forEach((e) => {
                     e.explode(pos)
                 })
@@ -241,11 +242,12 @@ export default class Game {
                         this.car.fix()
                         const pos = this.earth.getSpawnPosition()
                         this.car.spawn(pos)
-                        setTimeout(() => {
-                            if (this.car.isUpsideDown()) {
-                                this.car.spawn(pos)
-                            }
-                        }, 2000)
+                        // setTimeout(() => {
+                        //     if (this.car.isUpsideDown()) {
+                        //         const liftedPos = this.earth.getSpawnPosition(pos)
+                        //         this.car.spawn(liftedPos)
+                        //     }
+                        // }, 2000)
                     }
                 }
                 ;(
@@ -285,6 +287,7 @@ export default class Game {
                         this.players[p] = new Player(this.scene, this.physics)
                     }
                     this.players[p].updateLerps(gameData.players[p])
+                    //console.log('player ' + p + ' ' + gameData.players[p].e)
                 }
             })
             Object.keys(gameData.moons).forEach((m) => {

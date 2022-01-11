@@ -17,7 +17,7 @@ export default class Player {
     //lastBulletCounter = [-1, -1, -1] //used to decide if a bullet should instantly be repositioned or smoothly lerped
 
     partIds: number[] = []
-    public collisionPartIds: number[] = []
+    //public collisionPartIds: number[] = []
 
     frameBody: CANNON.Body
     wheelLFBody: CANNON.Body
@@ -95,10 +95,10 @@ export default class Player {
                         scene.add(this.wheelLBMesh)
                         scene.add(this.wheelRBMesh)
 
-                        this.wheelLFMesh.name = "LF"
-                        this.wheelRFMesh.name = "RF"
-                        this.wheelLBMesh.name = "LB"
-                        this.wheelRBMesh.name = "RB"
+                        this.wheelLFMesh.name = 'LF'
+                        this.wheelRFMesh.name = 'RF'
+                        this.wheelLBMesh.name = 'LB'
+                        this.wheelRBMesh.name = 'RB'
                     },
                     (xhr) => {
                         console.log((xhr.loaded / xhr.total) * 100 + '% loaded')
@@ -126,7 +126,7 @@ export default class Player {
         // this.frameBody.addShape(new CANNON.Sphere(0.1), new CANNON.Vec3(-1, 0, 0))
         //this.frameBody.sleep()
         this.frameBody.position.set(0, 0, 0)
-        this.physics.world.addBody(this.frameBody)
+        //this.physics.world.addBody(this.frameBody)
         this.partIds.push(this.frameBody.id)
 
         const wheelLFShape = new CANNON.Sphere(0.35)
@@ -136,7 +136,7 @@ export default class Player {
         })
         this.wheelLFBody.addShape(wheelLFShape)
         this.wheelLFBody.position.set(-2, 0, -2)
-        this.physics.world.addBody(this.wheelLFBody)
+        //this.physics.world.addBody(this.wheelLFBody)
         this.partIds.push(this.wheelLFBody.id)
 
         const wheelRFShape = new CANNON.Sphere(0.35)
@@ -146,7 +146,7 @@ export default class Player {
         })
         this.wheelRFBody.addShape(wheelRFShape)
         this.wheelRFBody.position.set(2, 0, -2)
-        this.physics.world.addBody(this.wheelRFBody)
+        //this.physics.world.addBody(this.wheelRFBody)
         this.partIds.push(this.wheelRFBody.id)
 
         const wheelLBShape = new CANNON.Sphere(0.4)
@@ -156,7 +156,7 @@ export default class Player {
         })
         this.wheelLBBody.addShape(wheelLBShape)
         this.wheelLBBody.position.set(-2, 0, 2)
-        this.physics.world.addBody(this.wheelLBBody)
+        //this.physics.world.addBody(this.wheelLBBody)
         this.partIds.push(this.wheelLBBody.id)
 
         const wheelRBShape = new CANNON.Sphere(0.4)
@@ -166,19 +166,22 @@ export default class Player {
         })
         this.wheelRBBody.addShape(wheelRBShape)
         this.wheelRBBody.position.set(2, 0, 2)
-        this.physics.world.addBody(this.wheelRBBody)
+        //this.physics.world.addBody(this.wheelRBBody)
         this.partIds.push(this.wheelRBBody.id)
 
         //to stop collisions occurring when objects being created, delay the partIds reference to a second after initialisation
         setTimeout(() => {
-            this.collisionPartIds = this.partIds.slice(0) // a simple clone technique
+            //this.collisionPartIds = this.partIds.slice(0) // a simple clone technique
+            this.physics.world.addBody(this.frameBody)
+            this.physics.world.addBody(this.wheelLFBody)
+            this.physics.world.addBody(this.wheelRFBody)
+            this.physics.world.addBody(this.wheelLBBody)
+            this.physics.world.addBody(this.wheelRBBody)
             this.enabled = true
         }, 1000)
     }
 
-    updateLerps(data: any) {
-        this.enabled = data.e
-
+    updateLerps(data: any) {        
         this.frameMesh.position.lerp(
             new THREE.Vector3(data.p.x, data.p.y, data.p.z),
             0.2
@@ -270,7 +273,8 @@ export default class Player {
             )
             //}
         }
-        //console.log(data.tq)
+        
+        this.enabled = data.e
     }
 
     update() {
@@ -338,26 +342,26 @@ export default class Player {
             this.scene.remove(this.bulletMesh[i])
         }
         //this.wheelLFMesh.traverse((child: THREE.Object3D) => {
-            // if ((child as THREE.Group).isGroup) {
-            //     console.log('here a')
-            //     child.traverse((child: THREE.Object3D) => {
-            //         if ((child as THREE.Mesh).isMesh) {
-            //             console.log('here b')
-            //             ;(
-            //                 (child as THREE.Mesh)
-            //                     .material as THREE.MeshBasicMaterial
-            //             ).dispose()
-            //             ;(child as THREE.Mesh).geometry.dispose()
-            //         }
-            //     })
-            // }
-            // if ((child as THREE.Mesh).isMesh) {
-            //     //console.log('here c')
-            //     ;(
-            //         (child as THREE.Mesh).material as THREE.MeshBasicMaterial
-            //     ).dispose()
-            //     ;(child as THREE.Mesh).geometry.dispose()
-            // }
+        // if ((child as THREE.Group).isGroup) {
+        //     console.log('here a')
+        //     child.traverse((child: THREE.Object3D) => {
+        //         if ((child as THREE.Mesh).isMesh) {
+        //             console.log('here b')
+        //             ;(
+        //                 (child as THREE.Mesh)
+        //                     .material as THREE.MeshBasicMaterial
+        //             ).dispose()
+        //             ;(child as THREE.Mesh).geometry.dispose()
+        //         }
+        //     })
+        // }
+        // if ((child as THREE.Mesh).isMesh) {
+        //     //console.log('here c')
+        //     ;(
+        //         (child as THREE.Mesh).material as THREE.MeshBasicMaterial
+        //     ).dispose()
+        //     ;(child as THREE.Mesh).geometry.dispose()
+        // }
         //})
         this.scene.remove(this.wheelLFMesh)
         this.scene.remove(this.wheelRFMesh)
@@ -373,8 +377,6 @@ export default class Player {
         this.physics.world.removeBody(this.wheelRBBody)
         this.physics.world.removeBody(this.frameBody)
 
-        console.log("scene object count = " + this.scene.children.length)
-
-        
+        console.log('scene object count = ' + this.scene.children.length)
     }
 }

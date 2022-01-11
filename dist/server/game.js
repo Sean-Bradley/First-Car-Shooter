@@ -96,11 +96,8 @@ class Game {
                     this.players[socket.id].w[3].p = message.w[3].p;
                     this.players[socket.id].w[3].q = message.w[3].q;
                     this.players[socket.id].b[0].p = message.b[0].p;
-                    //this.players[socket.id].b[0].c = message.b[0].c
                     this.players[socket.id].b[1].p = message.b[1].p;
-                    //this.players[socket.id].b[1].c = message.b[1].c
                     this.players[socket.id].b[2].p = message.b[2].p;
-                    //this.players[socket.id].b[2].c = message.b[2].c
                 }
             });
             socket.on('updateScreenName', (screenName) => {
@@ -108,15 +105,14 @@ class Game {
                     this.players[socket.id].sn = screenName;
                 }
             });
-            // socket.on('shoot', () => {
-            //     console.log('shoot from ' + this.players[socket.id].sn)
-            // })
             socket.on('hitCar', (p, pos, dir) => {
                 console.log('notfying hit');
-                if (this.players[p] && this.players[p].e) {
-                    io.emit('hitCar', { p: p, pos: pos, dir: dir });
-                    this.players[p].e = false;
-                    this.players[socket.id].s += 100;
+                if (this.gamePhase === 1) {
+                    if (this.players[p] && this.players[p].e) {
+                        io.emit('hitCar', { p: p, pos: pos, dir: dir });
+                        this.players[p].e = false;
+                        this.players[socket.id].s += 100;
+                    }
                 }
             });
             socket.on('hitMoon', (m, pos, dir) => {
@@ -173,7 +169,7 @@ class Game {
                     this.players[p].s = 0;
                 });
                 Object.keys(this.physics.moons).forEach((m) => {
-                    //this.physics.moons[m].randomise()
+                    this.physics.moons[m].randomise();
                 });
                 this.io.emit('newGame', {});
             }

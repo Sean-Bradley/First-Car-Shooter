@@ -5,11 +5,11 @@ import Physics from './physics'
 import Player from './player'
 import { Socket } from 'socket.io-client'
 import Moon from './moon'
+import Earth from './earth'
 
 export default class Car {
-    // upVector = new THREE.ArrowHelper()
-    // downVector = new THREE.ArrowHelper()
-
+    earth: null | Earth = null
+    scene: THREE.Scene
     camera: THREE.PerspectiveCamera
     physics: Physics
     socket: Socket
@@ -44,6 +44,7 @@ export default class Car {
     bulletMesh = [new THREE.Mesh(), new THREE.Mesh(), new THREE.Mesh()]
     bulletBody: CANNON.Body[] = []
     //public lastBulletCounter = [-1, -1, -1] //used to decide if a bullet should instantly be repositioned or smoothly lerped
+    public bulletActivated = [false, false, false]
     bulletId = -1
 
     public thrusting = false
@@ -65,6 +66,8 @@ export default class Car {
     carSound: THREE.PositionalAudio
     shootSound: THREE.PositionalAudio
 
+    //debugMesh: THREE.Mesh
+
     constructor(
         scene: THREE.Scene,
         camera: THREE.PerspectiveCamera,
@@ -74,12 +77,19 @@ export default class Car {
         socket: Socket,
         listener: THREE.AudioListener
     ) {
+        this.scene = scene
         this.camera = camera
         this.physics = physics
         this.players = players
         this.moons = moons
         this.socket = socket
         this.listener = listener
+
+        // this.debugMesh = new THREE.Mesh(
+        //     new THREE.SphereGeometry(),
+        //     new THREE.MeshNormalMaterial()
+        // )
+        //scene.add(this.debugMesh)
 
         const audioLoader = new THREE.AudioLoader()
         const carSound = new THREE.PositionalAudio(this.listener)
@@ -113,22 +123,6 @@ export default class Car {
                 this.carSound.loop = true
                 this.frameMesh.add(this.carSound)
                 this.frameMesh.add(this.shootSound)
-
-                // this.upVector = new THREE.ArrowHelper(
-                //     new THREE.Vector3(0, 1, 0),
-                //     new THREE.Vector3(0, 0, 0),
-                //     1,
-                //     0x00ff00
-                // )
-                // scene.add(this.upVector)
-
-                // this.downVector = new THREE.ArrowHelper(
-                //     new THREE.Vector3(0, -1, 0),
-                //     new THREE.Vector3(0, 0, 0),
-                //     1,
-                //     0xff0000
-                // )
-                // scene.add(this.downVector)
 
                 this.turretPivot = new THREE.Object3D()
                 this.turretPivot.position.y = 1.0
@@ -205,19 +199,16 @@ export default class Car {
             new CANNON.Sphere(0.1),
             new CANNON.Vec3(-1, -0.1, 0)
         )
-        this.frameBody.position.set(0, 1, 0)
-        this.physics.world.addBody(this.frameBody)
-        //this.partIds.push(this.frameBody.id)
+        this.frameBody.position.set(0, 0, 0)
+        //this.physics.world.addBody(this.frameBody)
 
         this.turretBody = new CANNON.Body({ mass: 0 })
         this.turretBody.addShape(
             new CANNON.Sphere(0.2),
             new CANNON.Vec3(0, 0, -1.0)
         )
-        //this.turretBody.sleep()
-        this.turretBody.position.set(0, 3, 0)
-        this.physics.world.addBody(this.turretBody)
-        //this.partIds.push(this.turretBody.id)
+        this.turretBody.position.set(0, 1, 0)
+        //this.physics.world.addBody(this.turretBody)
 
         const wheelLFShape = new CANNON.Sphere(0.35)
         this.wheelLFBody = new CANNON.Body({
@@ -225,9 +216,8 @@ export default class Car {
             material: this.physics.wheelMaterial,
         })
         this.wheelLFBody.addShape(wheelLFShape)
-        this.wheelLFBody.position.set(-2, 0, -2)
-        this.physics.world.addBody(this.wheelLFBody)
-        //this.partIds.push(this.wheelLFBody.id)
+        this.wheelLFBody.position.set(-1, 0, -1)
+        //this.physics.world.addBody(this.wheelLFBody)
 
         const wheelRFShape = new CANNON.Sphere(0.35)
         this.wheelRFBody = new CANNON.Body({
@@ -235,9 +225,8 @@ export default class Car {
             material: this.physics.wheelMaterial,
         })
         this.wheelRFBody.addShape(wheelRFShape)
-        this.wheelRFBody.position.set(2, 0, -2)
-        this.physics.world.addBody(this.wheelRFBody)
-        //this.partIds.push(this.wheelRFBody.id)
+        this.wheelRFBody.position.set(1, 0, -1)
+        //this.physics.world.addBody(this.wheelRFBody)
 
         const wheelLBShape = new CANNON.Sphere(0.4)
         this.wheelLBBody = new CANNON.Body({
@@ -245,9 +234,8 @@ export default class Car {
             material: this.physics.wheelMaterial,
         })
         this.wheelLBBody.addShape(wheelLBShape)
-        this.wheelLBBody.position.set(-2, 0, 2)
-        this.physics.world.addBody(this.wheelLBBody)
-        //this.partIds.push(this.wheelLBBody.id)
+        this.wheelLBBody.position.set(-1, 0, 1)
+        //this.physics.world.addBody(this.wheelLBBody)
 
         const wheelRBShape = new CANNON.Sphere(0.4)
         this.wheelRBBody = new CANNON.Body({
@@ -255,9 +243,8 @@ export default class Car {
             material: this.physics.wheelMaterial,
         })
         this.wheelRBBody.addShape(wheelRBShape)
-        this.wheelRBBody.position.set(2, 0, 2)
-        this.physics.world.addBody(this.wheelRBBody)
-        //this.partIds.push(this.wheelRBBody.id)
+        this.wheelRBBody.position.set(1, 0, 1)
+        //this.physics.world.addBody(this.wheelRBBody)
 
         const leftFrontAxis = new CANNON.Vec3(1, 0, 0)
         const rightFrontAxis = new CANNON.Vec3(1, 0, 0)
@@ -313,83 +300,92 @@ export default class Car {
         for (let i = 0; i < 3; i++) {
             this.bulletBody[i] = new CANNON.Body({ mass: 1 }) //, material: wheelMaterial })
             this.bulletBody[i].addShape(new CANNON.Sphere(0.15))
-            this.bulletBody[i].sleep()
-            this.physics.world.addBody(this.bulletBody[i])
+            //this.physics.world.addBody(this.bulletBody[i])
 
             this.bulletBody[i].addEventListener('collide', (e: any) => {
-                let contactBody: CANNON.Body
-                let contactPoint: CANNON.Vec3
-                if (this.bulletBody[i].id === e.contact.bi.id) {
-                    contactBody = e.contact.bj
-                    contactPoint = e.contact.rj
-                } else if (this.bulletBody[i].id === e.contact.bj.id) {
-                    contactBody = e.contact.bi
-                    contactPoint = e.contact.ri
-                }
+                if (this.bulletActivated[i]) {
+                    let contactBody: CANNON.Body
+                    let contactPoint: CANNON.Vec3
+                    if (this.bulletBody[i].id === e.contact.bi.id) {
+                        contactBody = e.contact.bj
+                        contactPoint = e.contact.rj
+                    } else if (this.bulletBody[i].id === e.contact.bj.id) {
+                        contactBody = e.contact.bi
+                        contactPoint = e.contact.ri
+                    }
 
-                Object.keys(this.players).forEach((p) => {
-                    if (this.players[p].enabled) {
-                        if (
-                            this.players[p].collisionPartIds.includes(
-                                contactBody.id
+                    Object.keys(this.players).forEach((p) => {
+                        if (this.players[p].enabled) {
+                            if (this.players[p].partIds.includes(contactBody.id)) {
+                                console.log('bullet hit a car')
+                                this.bulletActivated[i] = false
+
+                                //this.score += 100  // score is awarded server side
+
+                                const pointOfImpact = (
+                                    contactBody.position as CANNON.Vec3
+                                ).vadd(contactPoint)
+                                const v = contactBody.position.vsub(pointOfImpact)
+
+                                if (this.players[p].enabled) {
+                                    this.socket.emit(
+                                        'hitCar',
+                                        p,
+                                        this.bulletMesh[i].position,
+                                        v
+                                    )
+                                    this.players[p].enabled = false
+                                }
+                            }
+                        } else {
+                            console.log(
+                                'player ' + this.players[p] + ' not enabled'
                             )
-                        ) {
-                            console.log('bullet hit a car')
+                        }
+                    })
 
-                            //this.score += 100  // score is awarded server side
+                    Object.keys(this.moons).forEach((m) => {
+                        if (this.moons[m].enabled) {
+                            if (contactBody.id === this.moons[m].body.id) {
+                                console.log('bullet hit a moon')
+                                this.bulletActivated[i] = false
 
-                            const pointOfImpact = (
-                                contactBody.position as CANNON.Vec3
-                            ).vadd(contactPoint)
-                            const v = contactBody.position.vsub(pointOfImpact)
+                                //this.score += 10 // points awarded server side
 
-                            if (this.players[p].enabled) {
+                                const pointOfImpact = (
+                                    contactBody.position as CANNON.Vec3
+                                ).vadd(contactPoint)
+
+                                const v = contactBody.position.vsub(pointOfImpact)
+
                                 this.socket.emit(
-                                    'hitCar',
-                                    p,
+                                    'hitMoon',
+                                    m,
                                     this.bulletMesh[i].position,
                                     v
                                 )
-                                this.players[p].enabled = false
                             }
                         }
-                    }
-                })
-
-                Object.keys(this.moons).forEach((m) => {
-                    if (this.moons[m].enabled) {
-                        if (contactBody.id === this.moons[m].body.id) {
-                            console.log('bullet hit a moon')
-
-                            //this.score += 10 // points awarded server side
-                            const pointOfImpact = (
-                                contactBody.position as CANNON.Vec3
-                            ).vadd(contactPoint)
-
-                            const v = contactBody.position.vsub(pointOfImpact)
-
-                            this.socket.emit(
-                                'hitMoon',
-                                m,
-                                this.bulletMesh[i].position,
-                                v
-                            )
-                        }
-                    }
-                })
+                    })
+                }
             })
         }
 
         setInterval(() => {
-            if (this.isUpsideDown()) {
-                this.upsideDownCounter += 1
-                if (this.upsideDownCounter > 3) {
-                    this.spawn(this.frameMesh.position)
-                    console.log('flipped car')
+            if (this.enabled) {
+                if (this.isUpsideDown()) {
+                    this.upsideDownCounter += 1
+                    if (this.upsideDownCounter > 3) {
+                        const liftedPos = (this.earth as Earth).getSpawnPosition(
+                            this.frameMesh.position
+                        )
+                        this.spawn(liftedPos)
+                        console.log('flipped car')
+                    }
+                    console.log('car is upside down')
+                } else {
+                    this.upsideDownCounter = 0
                 }
-                console.log('car is upside down')
-            } else {
-                this.upsideDownCounter = 0
             }
         }, 1000)
     }
@@ -407,6 +403,7 @@ export default class Car {
     shoot() {
         if (this.enabled) {
             const bulletId = this.getNextBulletId()
+            this.bulletActivated[bulletId] = true
             this.bulletBody[bulletId].velocity.set(0, 0, 0)
             this.bulletBody[bulletId].angularVelocity.set(0, 0, 0)
             let v = new THREE.Vector3(0, 0, -1)
@@ -459,6 +456,21 @@ export default class Car {
         console.log('Spawn Car')
         //console.log(startPosition)
 
+        const normal = startPosition.clone().normalize()
+
+        //this.debugMesh.position.copy(startPosition)
+
+        this.enabled = false
+        for (let i = 0; i < 3; i++) {
+            this.physics.world.removeBody(this.bulletBody[i])
+        }
+        this.physics.world.removeBody(this.frameBody)
+        this.physics.world.removeBody(this.turretBody)
+        this.physics.world.removeBody(this.wheelLFBody)
+        this.physics.world.removeBody(this.wheelRFBody)
+        this.physics.world.removeBody(this.wheelLBBody)
+        this.physics.world.removeBody(this.wheelRBBody)
+
         const o = new THREE.Object3D()
         o.position.copy(startPosition)
         o.lookAt(new THREE.Vector3())
@@ -471,45 +483,77 @@ export default class Car {
             o.quaternion.w
         )
 
+        this.forwardVelocity = 0
+        this.rightVelocity = 0
+
+        this.frameBody.velocity.set(0, 0, 0)
+        this.frameBody.angularVelocity.set(0, 0, 0)
         this.frameBody.position.set(
             startPosition.x,
             startPosition.y,
             startPosition.z
         )
         this.frameBody.quaternion.copy(q)
+
+        this.turretBody.velocity.set(0, 0, 0)
+        this.turretBody.angularVelocity.set(0, 0, 0)
         this.turretBody.position.set(
             startPosition.x,
-            startPosition.y,
+            startPosition.y + 1,
             startPosition.z
         )
         this.turretBody.quaternion.copy(q)
+
+        this.wheelLFBody.velocity.set(0, 0, 0)
+        this.wheelLFBody.angularVelocity.set(0, 0, 0)
         this.wheelLFBody.position.set(
-            startPosition.x,
+            startPosition.x - 1,
             startPosition.y,
-            startPosition.z
+            startPosition.z - 1
         )
         this.wheelLFBody.quaternion.copy(q)
+
+        this.wheelRFBody.velocity.set(0, 0, 0)
+        this.wheelRFBody.angularVelocity.set(0, 0, 0)
         this.wheelRFBody.position.set(
-            startPosition.x,
+            startPosition.x + 1,
             startPosition.y,
-            startPosition.z
+            startPosition.z - 1
         )
         this.wheelRFBody.quaternion.copy(q)
+
+        this.wheelLBBody.velocity.set(0, 0, 0)
+        this.wheelLBBody.angularVelocity.set(0, 0, 0)
         this.wheelLBBody.position.set(
-            startPosition.x,
+            startPosition.x - 1,
             startPosition.y,
-            startPosition.z
+            startPosition.z + 1
         )
         this.wheelLBBody.quaternion.copy(q)
+
+        this.wheelRBBody.velocity.set(0, 0, 0)
+        this.wheelRBBody.angularVelocity.set(0, 0, 0)
         this.wheelRBBody.position.set(
-            startPosition.x,
+            startPosition.x + 1,
             startPosition.y,
-            startPosition.z
+            startPosition.z + 1
         )
         this.wheelRBBody.quaternion.copy(q)
 
-        //console.log(this.wheelRBBody.quaternion)
-        //this.enabled = true
+        setTimeout(() => {
+            this.physics.world.addBody(this.frameBody)
+            this.physics.world.addBody(this.turretBody)
+            this.physics.world.addBody(this.wheelLFBody)
+            this.physics.world.addBody(this.wheelRFBody)
+            this.physics.world.addBody(this.wheelLBBody)
+            this.physics.world.addBody(this.wheelRBBody)
+            for (let i = 0; i < 3; i++) {
+                this.physics.world.addBody(this.bulletBody[i])
+            }
+            this.enabled = true
+
+            this.socket.emit('enable')
+        }, 500)
     }
 
     update() {
@@ -519,7 +563,6 @@ export default class Car {
         this.chaseCam.getWorldQuaternion(this.camQuat)
         this.camera.quaternion.slerp(this.camQuat, 0.1)
 
-        //console.log(this.frameBody.position.x)
         this.frameMesh.position.x = this.frameBody.position.x
         this.frameMesh.position.y = this.frameBody.position.y
         this.frameMesh.position.z = this.frameBody.position.z
@@ -527,11 +570,6 @@ export default class Car {
         this.frameMesh.quaternion.y = this.frameBody.quaternion.y
         this.frameMesh.quaternion.z = this.frameBody.quaternion.z
         this.frameMesh.quaternion.w = this.frameBody.quaternion.w
-
-        // this.upVector.position.copy(this.frameMesh.position)
-        // this.upVector.setDirection(bodyUp)
-        // this.downVector.position.copy(this.frameMesh.position)
-        // this.downVector.setDirection(down)
 
         this.turretPivot.getWorldPosition(this.tmpVec)
         this.turretMesh.position.copy(this.tmpVec)
@@ -596,7 +634,6 @@ export default class Car {
             // this.bulletMesh[i].quaternion.w = this.bulletBody[i].quaternion.w
             //this.player.b[i].c = this.lastBulletCounter[i]
         }
-        //console.log(this.bulletMesh[0].position.x)
 
         this.carSound.setPlaybackRate(
             Math.abs(this.forwardVelocity / 50) + Math.random() / 9
@@ -605,11 +642,14 @@ export default class Car {
 
     explode(v: CANNON.Vec3) {
         //removes all constraints for this car so that parts separate
+        this.enabled = false
+
+        this.scene.add(this.chaseCamPivot)
+
         this.physics.world.removeConstraint(this.constraintLF)
         this.physics.world.removeConstraint(this.constraintRF)
         this.physics.world.removeConstraint(this.constraintLB)
         this.physics.world.removeConstraint(this.constraintRB)
-        this.enabled = false
 
         this.wheelLFBody.velocity = v.scale(Math.random() * 25)
         this.wheelRFBody.velocity = v.scale(Math.random() * 25)
@@ -620,13 +660,14 @@ export default class Car {
 
     fix() {
         if (this.physics.world.constraints.length === 0) {
+            console.log('fixing')
             this.physics.world.addConstraint(this.constraintLF)
             this.physics.world.addConstraint(this.constraintRF)
             this.physics.world.addConstraint(this.constraintLB)
             this.physics.world.addConstraint(this.constraintRB)
-            this.enabled = true
+            //this.enabled = true
 
-            this.socket.emit('enable')
+            //this.socket.emit('enable')
         }
     }
 }

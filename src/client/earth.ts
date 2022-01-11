@@ -85,20 +85,21 @@ export default class Earth {
         new Cosmos(scene, light)
     }
 
-    getSpawnPosition() {
+    getSpawnPosition(p?: THREE.Vector3) {
         const raycaster = new THREE.Raycaster()
 
-        const outside = new THREE.Vector3(
-            Math.random() * 0.2 - 0.1,
-            1,
-            Math.random() * 0.2 - 0.1
-        ).normalize()
-
-        // const outside = new THREE.Vector3(
-        //     Math.random() * 2 - 1,
-        //     Math.random() * 2 - 1,
-        //     Math.random() * 2 - 1
-        // ).normalize()
+        const outside = new THREE.Vector3()
+        if (p) {
+            outside.copy(p)
+        } else {
+            //outside.set(Math.random() * 0.2 - 0.1, -1, Math.random() * 0.2 - 0.1)
+            outside.set(
+                Math.random() * 2 - 1,
+                Math.random() * 2 - 1,
+                Math.random() * 2 - 1
+            )
+        }
+        outside.normalize()
 
         const inside = new THREE.Vector3()
             .subVectors(new THREE.Vector3(), outside)
@@ -111,7 +112,7 @@ export default class Earth {
         if (intersects.length > 0) {
             startPosition = intersects[0].point.addScaledVector(
                 outside.normalize(),
-                5
+                4
             )
         }
         return startPosition

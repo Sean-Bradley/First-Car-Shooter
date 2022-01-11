@@ -62,11 +62,8 @@ export default class Game {
                     this.players[socket.id].w[3].p = message.w[3].p
                     this.players[socket.id].w[3].q = message.w[3].q
                     this.players[socket.id].b[0].p = message.b[0].p
-                    //this.players[socket.id].b[0].c = message.b[0].c
                     this.players[socket.id].b[1].p = message.b[1].p
-                    //this.players[socket.id].b[1].c = message.b[1].c
                     this.players[socket.id].b[2].p = message.b[2].p
-                    //this.players[socket.id].b[2].c = message.b[2].c
                 }
             })
 
@@ -76,16 +73,14 @@ export default class Game {
                 }
             })
 
-            // socket.on('shoot', () => {
-            //     console.log('shoot from ' + this.players[socket.id].sn)
-            // })
-
             socket.on('hitCar', (p: string, pos: THREE.Vector3, dir: any) => {
                 console.log('notfying hit')
-                if (this.players[p] && this.players[p].e) {
-                    io.emit('hitCar', { p: p, pos: pos, dir: dir })
-                    this.players[p].e = false
-                    this.players[socket.id].s += 100
+                if (this.gamePhase === 1) {
+                    if (this.players[p] && this.players[p].e) {
+                        io.emit('hitCar', { p: p, pos: pos, dir: dir })
+                        this.players[p].e = false
+                        this.players[socket.id].s += 100
+                    }
                 }
             })
 
@@ -150,7 +145,7 @@ export default class Game {
                     this.players[p].s = 0
                 })
                 Object.keys(this.physics.moons).forEach((m) => {
-                    //this.physics.moons[m].randomise()
+                    this.physics.moons[m].randomise()
                 })
                 this.io.emit('newGame', {})
             } else if (this.gameClock < 0) {
