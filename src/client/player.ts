@@ -29,11 +29,17 @@ export default class Player {
     public screenName = ''
 
     targetPosFrame = new THREE.Vector3()
+    targetQuatFrame = new THREE.Quaternion()
     targetPosTurret = new THREE.Vector3()
+    targetQuatTurret = new THREE.Quaternion()
     targetPosWheelLF = new THREE.Vector3()
+    targetQuatWheelLF = new THREE.Quaternion()
     targetPosWheelRF = new THREE.Vector3()
+    targetQuatWheelRF = new THREE.Quaternion()
     targetPosWheelLB = new THREE.Vector3()
+    targetQuatWheelLB = new THREE.Quaternion()
     targetPosWheelRB = new THREE.Vector3()
+    targetQuatWheelRB = new THREE.Quaternion()
 
     constructor(scene: THREE.Scene, physics: Physics) {
         this.scene = scene
@@ -94,11 +100,6 @@ export default class Player {
                         scene.add(this.wheelRFMesh)
                         scene.add(this.wheelLBMesh)
                         scene.add(this.wheelRBMesh)
-
-                        this.wheelLFMesh.name = 'LF'
-                        this.wheelRFMesh.name = 'RF'
-                        this.wheelLBMesh.name = 'LB'
-                        this.wheelRBMesh.name = 'RB'
                     },
                     (xhr) => {
                         console.log((xhr.loaded / xhr.total) * 100 + '% loaded')
@@ -117,14 +118,10 @@ export default class Player {
         )
 
         this.frameBody = new CANNON.Body({ mass: 0 })
-        //this.frameBody.addShape(new CANNON.Sphere(0.3), new CANNON.Vec3(0, 0, -1.2))
         this.frameBody.addShape(
             new CANNON.Sphere(0.9),
             new CANNON.Vec3(0, 0.5, 0.2)
         )
-        // this.frameBody.addShape(new CANNON.Sphere(0.1), new CANNON.Vec3(1, 0, 0))
-        // this.frameBody.addShape(new CANNON.Sphere(0.1), new CANNON.Vec3(-1, 0, 0))
-        //this.frameBody.sleep()
         this.frameBody.position.set(0, 0, 0)
         //this.physics.world.addBody(this.frameBody)
         this.partIds.push(this.frameBody.id)
@@ -169,9 +166,8 @@ export default class Player {
         //this.physics.world.addBody(this.wheelRBBody)
         this.partIds.push(this.wheelRBBody.id)
 
-        //to stop collisions occurring when objects being created, delay the partIds reference to a second after initialisation
+        //delay added to stop collisions occurring when objects being created
         setTimeout(() => {
-            //this.collisionPartIds = this.partIds.slice(0) // a simple clone technique
             this.physics.world.addBody(this.frameBody)
             this.physics.world.addBody(this.wheelLFBody)
             this.physics.world.addBody(this.wheelRFBody)
@@ -181,28 +177,24 @@ export default class Player {
         }, 1000)
     }
 
-    updateLerps(data: any) {        
-        this.frameMesh.position.lerp(
-            new THREE.Vector3(data.p.x, data.p.y, data.p.z),
-            0.2
-        )
+    updateTargets(data: any) {
+        this.targetPosFrame.set(data.p.x, data.p.y, data.p.z)
+        this.targetPosTurret.set(data.tp.x, data.tp.y, data.tp.z)
+        this.targetPosWheelLF.set(data.w[0].p.x, data.w[0].p.y, data.w[0].p.z)
+        this.targetPosWheelRF.set(data.w[1].p.x, data.w[1].p.y, data.w[1].p.z)
+        this.targetPosWheelLB.set(data.w[2].p.x, data.w[2].p.y, data.w[2].p.z)
+        this.targetPosWheelRB.set(data.w[3].p.x, data.w[3].p.y, data.w[3].p.z)
+
         this.frameMesh.quaternion.slerp(
             new THREE.Quaternion(data.q._x, data.q._y, data.q._z, data.q._w),
             0.2
         )
 
-        this.turretMesh.position.lerp(
-            new THREE.Vector3(data.tp.x, data.tp.y, data.tp.z),
-            0.2
-        )
         this.turretMesh.quaternion.slerp(
             new THREE.Quaternion(data.tq._x, data.tq._y, data.tq._z, data.tq._w),
             0.2 //faster
         )
-        this.wheelLFMesh.position.lerp(
-            new THREE.Vector3(data.w[0].p.x, data.w[0].p.y, data.w[0].p.z),
-            0.2
-        )
+
         this.wheelLFMesh.quaternion.slerp(
             new THREE.Quaternion(
                 data.w[0].q._x,
@@ -212,10 +204,7 @@ export default class Player {
             ),
             0.2
         )
-        this.wheelRFMesh.position.lerp(
-            new THREE.Vector3(data.w[1].p.x, data.w[1].p.y, data.w[1].p.z),
-            0.2
-        )
+
         this.wheelRFMesh.quaternion.slerp(
             new THREE.Quaternion(
                 data.w[1].q._x,
@@ -225,10 +214,7 @@ export default class Player {
             ),
             0.2
         )
-        this.wheelLBMesh.position.lerp(
-            new THREE.Vector3(data.w[2].p.x, data.w[2].p.y, data.w[2].p.z),
-            0.2
-        )
+
         this.wheelLBMesh.quaternion.slerp(
             new THREE.Quaternion(
                 data.w[2].q._x,
@@ -238,10 +224,7 @@ export default class Player {
             ),
             0.2
         )
-        this.wheelRBMesh.position.lerp(
-            new THREE.Vector3(data.w[3].p.x, data.w[3].p.y, data.w[3].p.z),
-            0.2
-        )
+
         this.wheelRBMesh.quaternion.slerp(
             new THREE.Quaternion(
                 data.w[3].q._x,
@@ -253,31 +236,24 @@ export default class Player {
         )
 
         for (let i = 0; i < 3; i++) {
-            // if (data.b[i].c > this.lastBulletCounter[i]) {
-            //     this.lastBulletCounter[i] = data.b[i].c
-            //     this.bulletMesh[i].position.set(
-            //         data.b[i].p.x,
-            //         data.b[i].p.y,
-            //         data.b[i].p.z
-            //     )
-            // } else {
-            // this.bulletMesh[i].position.lerp(
-            //     new THREE.Vector3(data.b[i].p.x, data.b[i].p.y, data.b[i].p.z),
-            //     0.1
-            // )
-            //this.lastBulletCounter[i] = data.b[i].c
             this.bulletMesh[i].position.set(
                 data.b[i].p.x,
                 data.b[i].p.y,
                 data.b[i].p.z
             )
-            //}
         }
-        
+
         this.enabled = data.e
     }
 
     update() {
+        this.frameMesh.position.lerp(this.targetPosFrame, 0.2)
+        this.turretMesh.position.lerp(this.targetPosTurret, 0.2)
+        this.wheelLFMesh.position.lerp(this.targetPosWheelLF, 0.2)
+        this.wheelRFMesh.position.lerp(this.targetPosWheelRF, 0.2)
+        this.wheelLBMesh.position.lerp(this.targetPosWheelLB, 0.2)
+        this.wheelRBMesh.position.lerp(this.targetPosWheelRB, 0.2)
+
         this.frameBody.position.set(
             this.frameMesh.position.x,
             this.frameMesh.position.y,

@@ -6,6 +6,7 @@ import Player from './player'
 import { Socket } from 'socket.io-client'
 import Moon from './moon'
 import Earth from './earth'
+import { TWEEN } from 'three/examples/jsm/libs/tween.module.min'
 
 export default class Car {
     earth: null | Earth = null
@@ -66,6 +67,8 @@ export default class Car {
     carSound: THREE.PositionalAudio
     shootSound: THREE.PositionalAudio
 
+    cameraTempPosition: THREE.Object3D
+
     //debugMesh: THREE.Mesh
 
     constructor(
@@ -86,10 +89,13 @@ export default class Car {
         this.listener = listener
 
         // this.debugMesh = new THREE.Mesh(
-        //     new THREE.SphereGeometry(),
+        //     new THREE.SphereGeometry(.5),
         //     new THREE.MeshNormalMaterial()
         // )
-        //scene.add(this.debugMesh)
+        // scene.add(this.debugMesh)
+
+        this.cameraTempPosition = new THREE.Object3D()
+        scene.add(this.cameraTempPosition)
 
         const audioLoader = new THREE.AudioLoader()
         const carSound = new THREE.PositionalAudio(this.listener)
@@ -338,9 +344,9 @@ export default class Car {
                                 }
                             }
                         } else {
-                            console.log(
-                                'player ' + this.players[p] + ' not enabled'
-                            )
+                            // console.log(
+                            //     'player ' + this.players[p] + ' not enabled'
+                            // )
                         }
                     })
 
@@ -456,9 +462,13 @@ export default class Car {
         console.log('Spawn Car')
         //console.log(startPosition)
 
-        const normal = startPosition.clone().normalize()
-
         //this.debugMesh.position.copy(startPosition)
+        this.frameMesh.add(this.chaseCamPivot)
+
+        new TWEEN.Tween(this.chaseCam.position)
+            .to({ z: 4 })
+            .easing(TWEEN.Easing.Cubic.Out)
+            .start()
 
         this.enabled = false
         for (let i = 0; i < 3; i++) {
@@ -643,8 +653,6 @@ export default class Car {
     explode(v: CANNON.Vec3) {
         //removes all constraints for this car so that parts separate
         this.enabled = false
-
-        this.scene.add(this.chaseCamPivot)
 
         this.physics.world.removeConstraint(this.constraintLF)
         this.physics.world.removeConstraint(this.constraintRF)

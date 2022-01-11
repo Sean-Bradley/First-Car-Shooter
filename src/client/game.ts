@@ -10,6 +10,7 @@ import { io, Socket } from 'socket.io-client'
 import Player from './player'
 import Explosion from './explosion'
 import Moon from './moon'
+import { TWEEN } from 'three/examples/jsm/libs/tween.module.min'
 import CannonUtils from './utils/cannonUtils'
 
 export default class Game {
@@ -143,9 +144,21 @@ export default class Game {
         this.socket.on(
             'hitCar',
             (message: { p: string; pos: THREE.Vector3; dir: CANNON.Vec3 }) => {
-                if ((this.gamePhase === 1)) {
+                if (this.gamePhase === 1) {
                     if (message.p === this.myId) {
                         //console.log(message.dir)
+
+                        //detach and re position camera before blowing up car
+                        const v = this.earth.getSpawnPosition(
+                            this.car.frameMesh.position
+                        )
+                        this.car.cameraTempPosition.position.copy(v)
+                        this.car.cameraTempPosition.add(this.car.chaseCamPivot)
+                        new TWEEN.Tween(this.car.chaseCam.position)
+                            .to({ z: 250 })
+                            .easing(TWEEN.Easing.Cubic.Out)
+                            .start()
+
                         this.car.explode(
                             new CANNON.Vec3(
                                 message.dir.x,
@@ -169,7 +182,7 @@ export default class Game {
         )
 
         this.socket.on('hitMoon', (pos: THREE.Vector3) => {
-            if ((this.gamePhase === 1)) {
+            if (this.gamePhase === 1) {
                 this.explosions.forEach((e) => {
                     e.explode(pos)
                 })
@@ -242,12 +255,6 @@ export default class Game {
                         this.car.fix()
                         const pos = this.earth.getSpawnPosition()
                         this.car.spawn(pos)
-                        // setTimeout(() => {
-                        //     if (this.car.isUpsideDown()) {
-                        //         const liftedPos = this.earth.getSpawnPosition(pos)
-                        //         this.car.spawn(liftedPos)
-                        //     }
-                        // }, 2000)
                     }
                 }
                 ;(
@@ -286,7 +293,7 @@ export default class Game {
                         console.log('adding player ' + p)
                         this.players[p] = new Player(this.scene, this.physics)
                     }
-                    this.players[p].updateLerps(gameData.players[p])
+                    this.players[p].updateTargets(gameData.players[p])
                     //console.log('player ' + p + ' ' + gameData.players[p].e)
                 }
             })
@@ -321,5 +328,7 @@ export default class Game {
         this.explosions.forEach((e) => {
             e.update()
         })
+
+        TWEEN.update()
     }
 }

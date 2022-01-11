@@ -92,12 +92,12 @@ export default class Earth {
         if (p) {
             outside.copy(p)
         } else {
-            //outside.set(Math.random() * 0.2 - 0.1, -1, Math.random() * 0.2 - 0.1)
-            outside.set(
-                Math.random() * 2 - 1,
-                Math.random() * 2 - 1,
-                Math.random() * 2 - 1
-            )
+            outside.set(Math.random() * 0.2 - 0.1, 1, Math.random() * 0.2 - 0.1)
+            // outside.set(
+            //     Math.random() * 2 - 1,
+            //     Math.random() * 2 - 1,
+            //     Math.random() * 2 - 1
+            // )
         }
         outside.normalize()
 
