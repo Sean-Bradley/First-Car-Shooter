@@ -50,6 +50,7 @@ export default class Game {
             camera,
             this.physics,
             this.players,
+            this.moons,
             this.socket,
             this.listener
         )
@@ -139,10 +140,8 @@ export default class Game {
         )
 
         this.socket.on(
-            'hit',
+            'hitCar',
             (message: { p: string; pos: THREE.Vector3; dir: CANNON.Vec3 }) => {
-                // console.log('hit ' + message.who)
-                // console.log('hit ' + message.p)
                 if ((this.gamePhase = 1)) {
                     if (message.p === this.myId) {
                         //console.log(message.dir)
@@ -167,6 +166,20 @@ export default class Game {
                 }
             }
         )
+
+        this.socket.on('hitMoon', (pos: THREE.Vector3) => {
+            if ((this.gamePhase = 1)) {
+                this.explosions.forEach((e) => {
+                    e.explode(pos)
+                })
+                this.explosionSound.position.copy(pos)
+                if (this.explosionSound.isPlaying) {
+                    this.explosionSound.stop()
+                }
+                this.explosionSound.play()
+                console.log('playing explosion sound')
+            }
+        })
 
         this.socket.on('explosion', (p: THREE.Vector3) => {
             // this.explosions.forEach((e) => {
@@ -277,9 +290,9 @@ export default class Game {
             Object.keys(gameData.moons).forEach((m) => {
                 if (!this.moons[m]) {
                     console.log('adding moon ' + m)
-                    this.moons[m] = new Moon(this.scene) //, this.physics)
+                    this.moons[m] = new Moon(this.scene, this.physics)
                 }
-                this.moons[m].updateLerps(gameData.moons[m])
+                this.moons[m].updateTargets(gameData.moons[m])
             })
             ;(document.getElementById('pingStats') as HTMLDivElement).innerHTML =
                 pingStatsHtml
@@ -296,12 +309,12 @@ export default class Game {
         Object.keys(this.players).forEach((p) => {
             this.players[p].update()
         })
+        Object.keys(this.moons).forEach((m) => {
+            this.moons[m].update()
+        })
 
         this.earth.update(delta)
 
-        // Object.keys(this.moons).forEach((m) => {
-        //     this.moons[m].update()
-        // })
         this.explosions.forEach((e) => {
             e.update()
         })

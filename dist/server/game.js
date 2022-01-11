@@ -1,10 +1,30 @@
 "use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const player_1 = __importDefault(require("./player"));
 const physics_1 = __importDefault(require("./physics"));
+const CANNON = __importStar(require("cannon-es"));
 class Game {
     constructor(io) {
         this.gameClock = 1;
@@ -12,9 +32,8 @@ class Game {
         this.gameId = 0;
         this.gameWinner = '';
         this.recentWinners = [
-            { screenName: 'SeanWasEre', score: 30 },
-            { screenName: 'SeanWasEre', score: 10 },
-            { screenName: 'SeanWasEre', score: 20 },
+            { screenName: 'SeanWasEre', score: 100 },
+            { screenName: 'sbcode', score: 90 },
         ];
         this.winnersCalculated = false;
         this.players = {};
@@ -39,7 +58,7 @@ class Game {
                 this.recentWinners.sort((a, b) => a.score < b.score ? 1 : b.score < a.score ? -1 : 0);
                 //keep top 10
                 while (this.recentWinners.length > 10) {
-                    this.recentWinners.shift();
+                    this.recentWinners.pop();
                 }
                 this.io.emit('winner', highestScorePlayer.sn, this.recentWinners);
             }
@@ -92,15 +111,21 @@ class Game {
             // socket.on('shoot', () => {
             //     console.log('shoot from ' + this.players[socket.id].sn)
             // })
-            socket.on('hit', (p, pos, dir) => {
+            socket.on('hitCar', (p, pos, dir) => {
                 console.log('notfying hit');
-                // console.log(who)
-                // console.log(p)
-                //console.log(this.players[who])
                 if (this.players[p] && this.players[p].e) {
-                    io.emit('hit', { p: p, pos: pos, dir: dir });
+                    io.emit('hitCar', { p: p, pos: pos, dir: dir });
                     this.players[p].e = false;
                     this.players[socket.id].s += 100;
+                }
+            });
+            socket.on('hitMoon', (m, pos, dir) => {
+                console.log('notfying hit moon');
+                if (this.physics.moons[m]) {
+                    const v = new CANNON.Vec3(dir.x, dir.y, dir.z).scale(Math.random() * 25);
+                    this.physics.moons[m].sphereBody.velocity = v;
+                    io.emit('hitMoon', pos);
+                    this.players[socket.id].s += 10;
                 }
             });
             socket.on('enable', () => {
@@ -134,7 +159,7 @@ class Game {
             //this.physics.world.step(0.0125)
         }, 50);
         setInterval(() => {
-            this.physics.world.step(0.0125);
+            this.physics.world.step(0.025);
         }, 100);
         setInterval(() => {
             this.gameClock -= 1;
@@ -148,7 +173,7 @@ class Game {
                     this.players[p].s = 0;
                 });
                 Object.keys(this.physics.moons).forEach((m) => {
-                    this.physics.moons[m].randomise();
+                    //this.physics.moons[m].randomise()
                 });
                 this.io.emit('newGame', {});
             }

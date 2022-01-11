@@ -1,11 +1,19 @@
 import * as THREE from 'three'
-export default class Moon {
-    mesh: THREE.Mesh
-    moonMaterial: THREE.MeshStandardMaterial
-    targetPos = new THREE.Vector3()
-    targetQuat = new THREE.Quaternion()
+import * as CANNON from 'cannon-es'
+import Physics from './physics'
 
-    constructor(scene: THREE.Scene) {
+export default class Moon {
+    physics: Physics
+    mesh: THREE.Mesh
+    body: CANNON.Body
+    moonMaterial: THREE.MeshStandardMaterial
+    targetPosMesh = new THREE.Vector3()
+    targetQuatMesh = new THREE.Quaternion()
+    enabled = false
+
+    constructor(scene: THREE.Scene, physics: Physics) {
+        this.physics = physics
+
         this.moonMaterial = new THREE.MeshStandardMaterial()
         this.moonMaterial.map = new THREE.TextureLoader().load(
             'img/moon_540x270.jpg'
@@ -15,31 +23,38 @@ export default class Moon {
         this.mesh.receiveShadow = true
 
         scene.add(this.mesh)
+
+        this.body = new CANNON.Body({ mass: 0 })
+        this.body.addShape(new CANNON.Sphere(10))
+
+        physics.world.addBody(this.body)
     }
 
-    updateLerps(gameData: any) {
-        this.mesh.position.lerp(
-            new THREE.Vector3(gameData.p.x, gameData.p.y, gameData.p.z),
-            0.1
-        )
-        this.mesh.quaternion.slerp(
-            new THREE.Quaternion(
-                gameData.q.x,
-                gameData.q.y,
-                gameData.q.z,
-                gameData.q.w
-            ),
-            0.1
+    updateTargets(gameData: any) {
+        this.targetPosMesh.set(gameData.p.x, gameData.p.y, gameData.p.z)
+        this.targetQuatMesh.set(
+            gameData.q.x,
+            gameData.q.y,
+            gameData.q.z,
+            gameData.q.w
         )
     }
 
-    // updateData(gameData: any) {
-    //     this.targetPos.set(gameData.p.x, gameData.p.y, gameData.p.z)
-    //     this.targetQuat.set(gameData.q.x, gameData.q.y, gameData.q.z, gameData.q.w)
-    // }
+    update() {
+        this.mesh.position.lerp(this.targetPosMesh, 0.1)
+        this.body.position.set(
+            this.mesh.position.x,
+            this.mesh.position.y,
+            this.mesh.position.z
+        )
 
-    // updatePositionQuaternion() {
-    //     this.mesh.position.lerp(this.targetPos, 0.1)
-    //     this.mesh.quaternion.slerp(this.targetQuat, 0.1)
-    // }
+        this.mesh.quaternion.slerp(this.targetQuatMesh, 0.1)
+        this.body.quaternion.set(
+            this.mesh.quaternion.x,
+            this.mesh.quaternion.y,
+            this.mesh.quaternion.z,
+            this.mesh.quaternion.w
+        )
+        this.enabled = true
+    }
 }

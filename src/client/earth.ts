@@ -88,17 +88,17 @@ export default class Earth {
     getSpawnPosition() {
         const raycaster = new THREE.Raycaster()
 
-        // const outside = new THREE.Vector3(
-        //     Math.random() * 0.2 - 0.1,
-        //     1,
-        //     Math.random() * 0.2 - 0.1
-        // ).normalize()
-
         const outside = new THREE.Vector3(
-            Math.random() * 2 - 1,
-            Math.random() * 2 - 1,
-            Math.random() * 2 - 1
+            Math.random() * 0.2 - 0.1,
+            1,
+            Math.random() * 0.2 - 0.1
         ).normalize()
+
+        // const outside = new THREE.Vector3(
+        //     Math.random() * 2 - 1,
+        //     Math.random() * 2 - 1,
+        //     Math.random() * 2 - 1
+        // ).normalize()
 
         const inside = new THREE.Vector3()
             .subVectors(new THREE.Vector3(), outside)

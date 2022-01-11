@@ -1,6 +1,7 @@
 import socketIO from 'socket.io'
 import Player from './player'
 import Physics from './physics'
+import * as CANNON from 'cannon-es'
 
 export default class Game {
     io: socketIO.Server
@@ -11,9 +12,8 @@ export default class Game {
     gameId: number = 0
     gameWinner: string = ''
     recentWinners = [
-        { screenName: 'SeanWasEre', score: 30 },
-        { screenName: 'SeanWasEre', score: 10 },
-        { screenName: 'SeanWasEre', score: 20 },
+        { screenName: 'SeanWasEre', score: 100 },
+        { screenName: 'sbcode', score: 90 },
     ]
     winnersCalculated = false
 
@@ -80,15 +80,25 @@ export default class Game {
             //     console.log('shoot from ' + this.players[socket.id].sn)
             // })
 
-            socket.on('hit', (p: string, pos: THREE.Vector3, dir: any) => {
+            socket.on('hitCar', (p: string, pos: THREE.Vector3, dir: any) => {
                 console.log('notfying hit')
-                // console.log(who)
-                // console.log(p)
-                //console.log(this.players[who])
                 if (this.players[p] && this.players[p].e) {
-                    io.emit('hit', { p: p, pos: pos, dir: dir })
+                    io.emit('hitCar', { p: p, pos: pos, dir: dir })
                     this.players[p].e = false
                     this.players[socket.id].s += 100
+                }
+            })
+
+            socket.on('hitMoon', (m: string, pos: THREE.Vector3, dir: any) => {
+                console.log('notfying hit moon')
+
+                if (this.physics.moons[m]) {
+                    const v = new CANNON.Vec3(dir.x, dir.y, dir.z).scale(
+                        Math.random() * 25
+                    )
+                    this.physics.moons[m].sphereBody.velocity = v
+                    io.emit('hitMoon', pos)
+                    this.players[socket.id].s += 10
                 }
             })
 
@@ -125,9 +135,9 @@ export default class Game {
         }, 50)
 
         setInterval(() => {
-            this.physics.world.step(0.0125)
+            this.physics.world.step(0.025)
         }, 100)
-        
+
         setInterval(() => {
             this.gameClock -= 1
             if (this.gameClock < -5) {
@@ -140,7 +150,7 @@ export default class Game {
                     this.players[p].s = 0
                 })
                 Object.keys(this.physics.moons).forEach((m) => {
-                    this.physics.moons[m].randomise()
+                    //this.physics.moons[m].randomise()
                 })
                 this.io.emit('newGame', {})
             } else if (this.gameClock < 0) {
@@ -177,7 +187,7 @@ export default class Game {
 
             //keep top 10
             while (this.recentWinners.length > 10) {
-                this.recentWinners.shift()
+                this.recentWinners.pop()
             }
 
             this.io.emit('winner', highestScorePlayer.sn, this.recentWinners)

@@ -47,3 +47,7 @@ function animate() {
 }
 
 animate()
+
+// setInterval(() => {
+//     console.log((window.performance as any).memory)
+// }, 5000)

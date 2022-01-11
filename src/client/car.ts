@@ -4,10 +4,11 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader'
 import Physics from './physics'
 import Player from './player'
 import { Socket } from 'socket.io-client'
+import Moon from './moon'
 
 export default class Car {
-    upVector = new THREE.ArrowHelper()
-    downVector = new THREE.ArrowHelper()
+    // upVector = new THREE.ArrowHelper()
+    // downVector = new THREE.ArrowHelper()
 
     camera: THREE.PerspectiveCamera
     physics: Physics
@@ -56,6 +57,7 @@ export default class Car {
     public score: number = 0
 
     players: { [id: string]: Player }
+    moons: { [id: string]: Moon }
 
     upsideDownCounter = -1
 
@@ -68,12 +70,14 @@ export default class Car {
         camera: THREE.PerspectiveCamera,
         physics: Physics,
         players: { [id: string]: Player },
+        moons: { [id: string]: Moon },
         socket: Socket,
         listener: THREE.AudioListener
     ) {
         this.camera = camera
         this.physics = physics
         this.players = players
+        this.moons = moons
         this.socket = socket
         this.listener = listener
 
@@ -110,21 +114,21 @@ export default class Car {
                 this.frameMesh.add(this.carSound)
                 this.frameMesh.add(this.shootSound)
 
-                this.upVector = new THREE.ArrowHelper(
-                    new THREE.Vector3(0, 1, 0),
-                    new THREE.Vector3(0, 0, 0),
-                    1,
-                    0x00ff00
-                )
-                scene.add(this.upVector)
+                // this.upVector = new THREE.ArrowHelper(
+                //     new THREE.Vector3(0, 1, 0),
+                //     new THREE.Vector3(0, 0, 0),
+                //     1,
+                //     0x00ff00
+                // )
+                // scene.add(this.upVector)
 
-                this.downVector = new THREE.ArrowHelper(
-                    new THREE.Vector3(0, -1, 0),
-                    new THREE.Vector3(0, 0, 0),
-                    1,
-                    0xff0000
-                )
-                scene.add(this.downVector)
+                // this.downVector = new THREE.ArrowHelper(
+                //     new THREE.Vector3(0, -1, 0),
+                //     new THREE.Vector3(0, 0, 0),
+                //     1,
+                //     0xff0000
+                // )
+                // scene.add(this.downVector)
 
                 this.turretPivot = new THREE.Object3D()
                 this.turretPivot.position.y = 1.0
@@ -341,18 +345,35 @@ export default class Car {
 
                             if (this.players[p].enabled) {
                                 this.socket.emit(
-                                    'hit',
+                                    'hitCar',
                                     p,
                                     this.bulletMesh[i].position,
                                     v
                                 )
                                 this.players[p].enabled = false
-
-                                // this.players[p].collisionPartIds = []
-                                // setTimeout(() => {
-                                //     this.players[p].collisionPartIds = this.players[p].partIds.slice(0) // a simple clone technique
-                                // }, 1000)
                             }
+                        }
+                    }
+                })
+
+                Object.keys(this.moons).forEach((m) => {
+                    if (this.moons[m].enabled) {
+                        if (contactBody.id === this.moons[m].body.id) {
+                            console.log('bullet hit a moon')
+
+                            //this.score += 10 // points awarded server side
+                            const pointOfImpact = (
+                                contactBody.position as CANNON.Vec3
+                            ).vadd(contactPoint)
+
+                            const v = contactBody.position.vsub(pointOfImpact)
+
+                            this.socket.emit(
+                                'hitMoon',
+                                m,
+                                this.bulletMesh[i].position,
+                                v
+                            )
                         }
                     }
                 })
@@ -577,7 +598,9 @@ export default class Car {
         }
         //console.log(this.bulletMesh[0].position.x)
 
-        this.carSound.setPlaybackRate(Math.abs(this.forwardVelocity / 50) + Math.random() / 9)
+        this.carSound.setPlaybackRate(
+            Math.abs(this.forwardVelocity / 50) + Math.random() / 9
+        )
     }
 
     explode(v: CANNON.Vec3) {
