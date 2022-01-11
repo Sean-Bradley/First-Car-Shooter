@@ -2,6 +2,10 @@ import * as THREE from 'three'
 import * as CANNON from 'cannon-es'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader'
 import Physics from './physics'
+import {
+    Lensflare,
+    LensflareElement,
+} from 'three/examples/jsm/objects/Lensflare.js'
 
 export default class Player {
     scene: THREE.Scene
@@ -75,6 +79,19 @@ export default class Player {
         })
         this.shootSound = shootSound
 
+        const flareTexture = new THREE.TextureLoader().load('img/lensflare0.png')
+        const lensflares = [new Lensflare(), new Lensflare(), new Lensflare()]
+        lensflares.forEach((l) => {
+            l.addElement(
+                new LensflareElement(
+                    flareTexture,
+                    200,
+                    0,
+                    new THREE.Color(0xffa500)
+                )
+            )
+        })
+
         const loader = new GLTFLoader()
         loader.load(
             'models/frame.glb',
@@ -101,13 +118,18 @@ export default class Player {
 
                 // bullets
                 for (let i = 0; i < 3; i++) {
-                    this.bulletMesh[i].geometry = new THREE.SphereGeometry(0.2)
+                    this.bulletMesh[i].geometry = new THREE.SphereGeometry(
+                        0.3,
+                        2,
+                        2
+                    )
                     this.bulletMesh[i].material = new THREE.MeshBasicMaterial({
-                        color: 0x00ff00,
+                        color: 0xffa500,
                         wireframe: true,
                     })
                     this.bulletMesh[i].castShadow = true
                     scene.add(this.bulletMesh[i])
+                    this.bulletMesh[i].add(lensflares[i])
                 }
 
                 loader.load(

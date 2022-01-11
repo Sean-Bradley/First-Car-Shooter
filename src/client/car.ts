@@ -7,6 +7,10 @@ import { Socket } from 'socket.io-client'
 import Moon from './moon'
 import Earth from './earth'
 import { TWEEN } from 'three/examples/jsm/libs/tween.module.min'
+import {
+    Lensflare,
+    LensflareElement,
+} from 'three/examples/jsm/objects/Lensflare.js'
 
 export default class Car {
     earth: null | Earth = null
@@ -118,6 +122,19 @@ export default class Car {
         pipesMaterial.roughness = 0.2
         pipesMaterial.metalness = 1
 
+        const flareTexture = new THREE.TextureLoader().load('img/lensflare0.png')
+        const lensflares = [new Lensflare(), new Lensflare(), new Lensflare()]
+        lensflares.forEach((l) => {
+            l.addElement(
+                new LensflareElement(
+                    flareTexture,
+                    200,
+                    0,
+                    new THREE.Color(0x00ff00)
+                )
+            )
+        })
+
         const loader = new GLTFLoader()
         loader.load(
             'models/frame.glb',
@@ -148,13 +165,18 @@ export default class Car {
 
                 //bullets
                 for (let i = 0; i < 3; i++) {
-                    this.bulletMesh[i].geometry = new THREE.SphereGeometry(0.2)
+                    this.bulletMesh[i].geometry = new THREE.SphereGeometry(
+                        0.3,
+                        2,
+                        2
+                    )
                     this.bulletMesh[i].material = new THREE.MeshBasicMaterial({
                         color: 0x00ff00,
-                        //wireframe: true,
+                        wireframe: true,
                     })
                     this.bulletMesh[i].castShadow = true
                     scene.add(this.bulletMesh[i])
+                    this.bulletMesh[i].add(lensflares[i])
                 }
 
                 loader.load(
@@ -643,6 +665,8 @@ export default class Car {
             // this.bulletMesh[i].quaternion.z = this.bulletBody[i].quaternion.z
             // this.bulletMesh[i].quaternion.w = this.bulletBody[i].quaternion.w
             //this.player.b[i].c = this.lastBulletCounter[i]
+            this.bulletMesh[i].rotation.x += 0.1
+            this.bulletMesh[i].rotation.y += 0.05
         }
 
         this.carSound.setPlaybackRate(
