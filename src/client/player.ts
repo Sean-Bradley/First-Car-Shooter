@@ -14,7 +14,7 @@ export default class Player {
     wheelLBMesh = new THREE.Group()
     wheelRBMesh = new THREE.Group()
     bulletMesh = [new THREE.Mesh(), new THREE.Mesh(), new THREE.Mesh()]
-    //lastBulletCounter = [-1, -1, -1] //used to decide if a bullet should instantly be repositioned or smoothly lerped
+    lastBulletCounter = [-1, -1, -1] //used to decide if a bullet should instantly be repositioned or smoothly lerped
 
     partIds: number[] = []
     //public collisionPartIds: number[] = []
@@ -41,15 +41,39 @@ export default class Player {
     targetPosWheelRB = new THREE.Vector3()
     targetQuatWheelRB = new THREE.Quaternion()
 
-    constructor(scene: THREE.Scene, physics: Physics) {
+    listener: THREE.AudioListener
+    carSound: THREE.PositionalAudio
+    shootSound: THREE.PositionalAudio
+
+    constructor(
+        scene: THREE.Scene,
+        physics: Physics,
+        listener: THREE.AudioListener
+    ) {
         this.scene = scene
         this.physics = physics
+        this.listener = listener
 
         const pipesMaterial = new THREE.MeshStandardMaterial()
         pipesMaterial.color = new THREE.Color('#ffffff')
         pipesMaterial.refractionRatio = 0
         pipesMaterial.roughness = 0.2
         pipesMaterial.metalness = 1
+
+        const audioLoader = new THREE.AudioLoader()
+        const carSound = new THREE.PositionalAudio(this.listener)
+        audioLoader.load('sounds/engine.wav', (buffer) => {
+            carSound.setBuffer(buffer)
+            carSound.setVolume(0.5)
+        })
+        this.carSound = carSound
+
+        const shootSound = new THREE.PositionalAudio(this.listener)
+        audioLoader.load('sounds/rocket.ogg', (buffer) => {
+            shootSound.setBuffer(buffer)
+            shootSound.setVolume(2)
+        })
+        this.shootSound = shootSound
 
         const loader = new GLTFLoader()
         loader.load(
@@ -59,9 +83,9 @@ export default class Player {
                 this.frameMesh.material = pipesMaterial
                 this.frameMesh.castShadow = true
                 scene.add(this.frameMesh)
-                // this.carSound.loop = true
-                // this.frame.add(this.carSound)
-                // this.frame.add(this.shootSound)
+                this.carSound.loop = true
+                this.frameMesh.add(this.carSound)
+                this.frameMesh.add(this.shootSound)
 
                 this.turretPivot = new THREE.Object3D()
                 this.turretPivot.position.y = 1.0
@@ -236,12 +260,22 @@ export default class Player {
         )
 
         for (let i = 0; i < 3; i++) {
+            if (data.b[i].c > this.lastBulletCounter[i]) {
+                this.lastBulletCounter[i] = data.b[i].c
+                if (this.shootSound.isPlaying) {
+                    this.shootSound.stop()
+                }
+                this.shootSound.play()
+                //console.log("player shoot sound")
+            }
             this.bulletMesh[i].position.set(
                 data.b[i].p.x,
                 data.b[i].p.y,
                 data.b[i].p.z
             )
         }
+
+        this.carSound.setPlaybackRate(Math.abs(data.v / 50) + Math.random() / 9)
 
         this.enabled = data.e
     }
@@ -339,6 +373,7 @@ export default class Player {
         //     ;(child as THREE.Mesh).geometry.dispose()
         // }
         //})
+
         this.scene.remove(this.wheelLFMesh)
         this.scene.remove(this.wheelRFMesh)
         this.scene.remove(this.wheelLBMesh)

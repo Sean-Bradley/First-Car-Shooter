@@ -103,9 +103,9 @@ export default class UI {
             this.menuActive = false
 
             this.game.car.carSound.play()
-            // Object.keys(this.game.cars).forEach((c) => {
-            //     this.game.cars[c].carSound.play()
-            // })
+            Object.keys(this.game.players).forEach((p) => {
+                this.game.players[p].carSound.play()
+            })
         } else {
             this.rendererDomElement.removeEventListener(
                 'mousemove',
@@ -127,9 +127,9 @@ export default class UI {
             this.menuActive = true
 
             this.game.car.carSound.stop()
-            // Object.keys(this.game.cars).forEach((c) => {
-            //     this.game.cars[c].carSound.stop()
-            // })
+            Object.keys(this.game.players).forEach((p) => {
+                this.game.players[p].carSound.stop()
+            })
         }
 
         setInterval(() => {

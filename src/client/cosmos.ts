@@ -6,10 +6,10 @@ import {
 
 export default class Cosmos {
     constructor(scene: THREE.Scene, light: THREE.Light) {
-        const textureFlare0 = new THREE.TextureLoader().load('img/lensflare0.png')
+        const flareTexture = new THREE.TextureLoader().load('img/lensflare0.png')
         const lensflare = new Lensflare()
         lensflare.addElement(
-            new LensflareElement(textureFlare0, 1000, 0, light.color)
+            new LensflareElement(flareTexture, 1000, 0, light.color)
         )
         light.add(lensflare)
 

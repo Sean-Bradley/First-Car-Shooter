@@ -85,6 +85,7 @@ class Game {
                     this.players[socket.id].t = message.t;
                     this.players[socket.id].p = message.p;
                     this.players[socket.id].q = message.q;
+                    this.players[socket.id].v = message.v;
                     this.players[socket.id].tp = message.tp;
                     this.players[socket.id].tq = message.tq;
                     this.players[socket.id].w[0].p = message.w[0].p;
@@ -96,8 +97,11 @@ class Game {
                     this.players[socket.id].w[3].p = message.w[3].p;
                     this.players[socket.id].w[3].q = message.w[3].q;
                     this.players[socket.id].b[0].p = message.b[0].p;
+                    this.players[socket.id].b[0].c = message.b[0].c;
                     this.players[socket.id].b[1].p = message.b[1].p;
+                    this.players[socket.id].b[1].c = message.b[1].c;
                     this.players[socket.id].b[2].p = message.b[2].p;
+                    this.players[socket.id].b[2].c = message.b[2].c;
                 }
             });
             socket.on('updateScreenName', (screenName) => {

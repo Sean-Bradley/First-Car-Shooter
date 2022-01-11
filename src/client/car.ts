@@ -44,7 +44,7 @@ export default class Car {
 
     bulletMesh = [new THREE.Mesh(), new THREE.Mesh(), new THREE.Mesh()]
     bulletBody: CANNON.Body[] = []
-    //public lastBulletCounter = [-1, -1, -1] //used to decide if a bullet should instantly be repositioned or smoothly lerped
+    public lastBulletCounter = [-1, -1, -1] //used to decide if a bullet should instantly be repositioned or smoothly lerped
     public bulletActivated = [false, false, false]
     bulletId = -1
 
@@ -151,7 +151,7 @@ export default class Car {
                     this.bulletMesh[i].geometry = new THREE.SphereGeometry(0.2)
                     this.bulletMesh[i].material = new THREE.MeshBasicMaterial({
                         color: 0x00ff00,
-                        wireframe: true,
+                        //wireframe: true,
                     })
                     this.bulletMesh[i].castShadow = true
                     scene.add(this.bulletMesh[i])
@@ -401,7 +401,7 @@ export default class Car {
         if (this.bulletId > 2) {
             this.bulletId = 0
         }
-        //this.lastBulletCounter[this.bulletId] += 1
+        this.lastBulletCounter[this.bulletId] += 1
 
         return this.bulletId
     }

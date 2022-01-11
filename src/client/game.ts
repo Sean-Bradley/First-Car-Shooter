@@ -101,6 +101,7 @@ export default class Game {
                         t: Date.now(),
                         p: this.car.frameMesh.position,
                         q: this.car.frameMesh.quaternion,
+                        v: this.car.forwardVelocity,
                         tp: this.car.turretMesh.position,
                         tq: this.car.turretMesh.quaternion,
                         w: [
@@ -124,15 +125,15 @@ export default class Game {
                         b: [
                             {
                                 p: this.car.bulletMesh[0].position,
-                                //c: this.car.lastBulletCounter[0]
+                                c: this.car.lastBulletCounter[0]
                             },
                             {
                                 p: this.car.bulletMesh[1].position,
-                                //c: this.car.lastBulletCounter[1]
+                                c: this.car.lastBulletCounter[1]
                             },
                             {
                                 p: this.car.bulletMesh[2].position,
-                                //c: this.car.lastBulletCounter[2]
+                                c: this.car.lastBulletCounter[2]
                             },
                         ],
                     })
@@ -273,7 +274,7 @@ export default class Game {
                     this.ui.gameClosedAlert.style.display = 'block'
                     setTimeout(() => {
                         this.ui.gameClosedAlert.style.display = 'none'
-                    }, 4000)
+                    }, 5000)
                 }
                 this.gamePhase = 0
             }
@@ -291,7 +292,7 @@ export default class Game {
                 if (p !== this.myId) {
                     if (!this.players[p]) {
                         console.log('adding player ' + p)
-                        this.players[p] = new Player(this.scene, this.physics)
+                        this.players[p] = new Player(this.scene, this.physics, this.listener)
                     }
                     this.players[p].updateTargets(gameData.players[p])
                     //console.log('player ' + p + ' ' + gameData.players[p].e)

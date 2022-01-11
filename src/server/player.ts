@@ -3,6 +3,7 @@ export default class Player {
     public sn = '' //screenName
     public e = true //enabled
     public s = 0 //score
+    public v = 0 //forward velocity
 
     public p = { x: 0, y: 0, z: 0 } //position
     public q = { x: 0, y: 0, z: 0, w: 0 } //quaternion
@@ -21,12 +22,10 @@ export default class Player {
     ] //wheels
 
     public b = [
-        { p: { x: 0, y: 0, z: 0 }, q: { x: 0, y: 0, z: 0, w: 0 } },
-        { p: { x: 0, y: 0, z: 0 }, q: { x: 0, y: 0, z: 0, w: 0 } },
-        { p: { x: 0, y: 0, z: 0 }, q: { x: 0, y: 0, z: 0, w: 0 } },
+        { p: { x: 0, y: 0, z: 0 }, q: { x: 0, y: 0, z: 0, w: 0 }, c: -1 },
+        { p: { x: 0, y: 0, z: 0 }, q: { x: 0, y: 0, z: 0, w: 0 }, c: -1 },
+        { p: { x: 0, y: 0, z: 0 }, q: { x: 0, y: 0, z: 0, w: 0 }, c: -1 },
     ] //bullets
-
-    public m = [{ p: { x: 0, y: 0, z: 0 }, q: { x: 0, y: 0, z: 0, w: 0 } }] //moons
 
     public t = -1 //ping timestamp
 
