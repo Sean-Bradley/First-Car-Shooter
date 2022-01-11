@@ -49,6 +49,8 @@ export default class Player {
     carSound: THREE.PositionalAudio
     shootSound: THREE.PositionalAudio
 
+    lensflares = [new Lensflare(), new Lensflare(), new Lensflare()]
+
     constructor(
         scene: THREE.Scene,
         physics: Physics,
@@ -80,8 +82,7 @@ export default class Player {
         this.shootSound = shootSound
 
         const flareTexture = new THREE.TextureLoader().load('img/lensflare0.png')
-        const lensflares = [new Lensflare(), new Lensflare(), new Lensflare()]
-        lensflares.forEach((l) => {
+        this.lensflares.forEach((l) => {
             l.addElement(
                 new LensflareElement(
                     flareTexture,
@@ -129,7 +130,7 @@ export default class Player {
                     })
                     this.bulletMesh[i].castShadow = true
                     scene.add(this.bulletMesh[i])
-                    this.bulletMesh[i].add(lensflares[i])
+                    this.bulletMesh[i].add(this.lensflares[i])
                 }
 
                 loader.load(
@@ -370,6 +371,7 @@ export default class Player {
     dispose() {
         for (let i = 0; i < 3; i++) {
             ;(this.bulletMesh[i].material as THREE.MeshBasicMaterial).dispose()
+            this.lensflares[i].dispose()
             this.bulletMesh[i].geometry.dispose()
             this.scene.remove(this.bulletMesh[i])
         }

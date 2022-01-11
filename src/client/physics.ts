@@ -7,12 +7,7 @@ export default class Physics {
     wheelGroundContactMaterial: CANNON.ContactMaterial
 
     constructor() {
-        //io: any) {
-        //this.io = io
-        //this.theCarGame = theCarGame
-
         this.world = new CANNON.World()
-        ;(this.world.solver as CANNON.GSSolver).iterations = 10
         this.world.gravity.set(0, -1, 0)
 
         this.groundMaterial = new CANNON.Material('groundMaterial')

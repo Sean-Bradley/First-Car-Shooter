@@ -20,47 +20,60 @@ export default class Earth {
         const earthMaterial = new THREE.MeshPhongMaterial() //{ wireframe: true })
         earthMaterial.map = earthTexture
 
-        const objLoader = new OBJLoader()
-        objLoader.load(
-            'models/topoEarth_3.obj',
-            (obj) => {
-                obj.traverse((child) => {
-                    if ((child as THREE.Mesh).isMesh) {
-                        const m = child as THREE.Mesh
-                        m.receiveShadow = true
-                        m.castShadow = true
-                        m.material = earthMaterial
-                        this.mesh = m
+        // const objLoader = new OBJLoader()
+        // objLoader.load(
+        //     'models/topoEarth_3.obj',
+        //     (obj) => {
+        //         obj.traverse((child) => {
+        //             if ((child as THREE.Mesh).isMesh) {
+        //                 const m = child as THREE.Mesh
+        //                 m.receiveShadow = true
+        //                 m.castShadow = true
+        //                 m.material = earthMaterial
+        //                 this.mesh = m
 
-                        const shape = CannonUtils.CreateTrimesh(m.geometry)
-                        this.earthBody = new CANNON.Body({
-                            mass: 0,
-                            material: physics.groundMaterial,
-                        })
-                        this.earthBody.addShape(shape)
-                        this.earthBody.position.x = m.position.x
-                        this.earthBody.position.y = m.position.y
-                        this.earthBody.position.z = m.position.z
-                        this.earthBody.quaternion.x = m.quaternion.x
-                        this.earthBody.quaternion.y = m.quaternion.y
-                        this.earthBody.quaternion.z = m.quaternion.z
-                        this.earthBody.quaternion.w = m.quaternion.w
-                        physics.world.addBody(this.earthBody)
+        //                 const shape = CannonUtils.CreateTrimesh(m.geometry)
+        //                 this.earthBody = new CANNON.Body({
+        //                     mass: 0,
+        //                     material: physics.groundMaterial,
+        //                 })
+        //                 this.earthBody.addShape(shape)
+        //                 this.earthBody.position.x = m.position.x
+        //                 this.earthBody.position.y = m.position.y
+        //                 this.earthBody.position.z = m.position.z
+        //                 this.earthBody.quaternion.x = m.quaternion.x
+        //                 this.earthBody.quaternion.y = m.quaternion.y
+        //                 this.earthBody.quaternion.z = m.quaternion.z
+        //                 this.earthBody.quaternion.w = m.quaternion.w
+        //                 physics.world.addBody(this.earthBody)
 
-                        const startPosition = this.getSpawnPosition()
-                        car.spawn(startPosition)
-                    }
-                })
+        //                 const startPosition = this.getSpawnPosition()
+        //                 car.spawn(startPosition)
+        //             }
+        //         })
 
-                scene.add(obj)
-            },
-            (xhr) => {
-                console.log((xhr.loaded / xhr.total) * 100 + '% loaded')
-            },
-            (error) => {
-                console.log(error)
-            }
-        )
+        //         scene.add(obj)
+        //     },
+        //     (xhr) => {
+        //         console.log((xhr.loaded / xhr.total) * 100 + '% loaded')
+        //     },
+        //     (error) => {
+        //         console.log(error)
+        //     }
+        // )
+
+        this.mesh = new THREE.Mesh(new THREE.SphereGeometry(110), earthMaterial)
+        scene.add(this.mesh)
+        this.earthBody = new CANNON.Body({
+            mass: 0,
+            material: physics.groundMaterial,
+        })
+        
+        this.earthBody.addShape(new CANNON.Sphere(110))
+        physics.world.addBody(this.earthBody)
+        const startPosition = this.getSpawnPosition()
+        car.spawn(startPosition)
+
 
         const ambientLight = new THREE.AmbientLight(0xffffff, 0.1)
         scene.add(ambientLight)

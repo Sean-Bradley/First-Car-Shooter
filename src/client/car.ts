@@ -73,6 +73,7 @@ export default class Car {
 
     cameraTempPosition: THREE.Object3D
 
+    lensflares = [new Lensflare(), new Lensflare(), new Lensflare()]
     //debugMesh: THREE.Mesh
 
     constructor(
@@ -122,9 +123,8 @@ export default class Car {
         pipesMaterial.roughness = 0.2
         pipesMaterial.metalness = 1
 
-        const flareTexture = new THREE.TextureLoader().load('img/lensflare0.png')
-        const lensflares = [new Lensflare(), new Lensflare(), new Lensflare()]
-        lensflares.forEach((l) => {
+        const flareTexture = new THREE.TextureLoader().load('img/lensflare0.png')        
+        this.lensflares.forEach((l) => {
             l.addElement(
                 new LensflareElement(
                     flareTexture,
@@ -176,7 +176,7 @@ export default class Car {
                     })
                     this.bulletMesh[i].castShadow = true
                     scene.add(this.bulletMesh[i])
-                    this.bulletMesh[i].add(lensflares[i])
+                    this.bulletMesh[i].add(this.lensflares[i])
                 }
 
                 loader.load(
