@@ -156,7 +156,6 @@ class Game {
                 players: this.players,
                 moons: moonData,
             });
-            //this.physics.world.step(0.0125)
         }, 50);
         setInterval(() => {
             this.physics.world.step(0.025);
@@ -165,7 +164,7 @@ class Game {
             this.gameClock -= 1;
             if (this.gameClock < -5) {
                 this.gamePhase = 1;
-                this.gameClock = 60;
+                this.gameClock = 45;
                 this.gameWinner = '';
                 this.gameId += 1;
                 this.winnersCalculated = false;

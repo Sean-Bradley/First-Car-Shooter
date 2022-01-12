@@ -43,7 +43,7 @@ export default class Game {
         this.camera = camera
         this.renderer = renderer
         this.listener = listener
-        this.ui = new UI(this, renderer.domElement)
+        this.ui = new UI(this, renderer)
         this.physics = new Physics()
         this.socket = io()
         this.car = new Car(
@@ -91,12 +91,10 @@ export default class Game {
                     document.getElementById('screenNameInput') as HTMLInputElement
                 ).value = screenName
 
-                this.updateInterval = setInterval(() => {
-                    // if (this.cars[this.myId].carFullySetup) {
-                    //     this.cars[this.myId].turretPivot.getWorldPosition(
-                    //         this.tmpVec
-                    //     )
+                this.ui.menuActive = true
+                this.ui.menuPanel.style.display = 'block'
 
+                this.updateInterval = setInterval(() => {
                     this.socket.emit('update', {
                         t: Date.now(),
                         p: this.car.frameMesh.position,
@@ -125,15 +123,15 @@ export default class Game {
                         b: [
                             {
                                 p: this.car.bulletMesh[0].position,
-                                c: this.car.lastBulletCounter[0]
+                                c: this.car.lastBulletCounter[0],
                             },
                             {
                                 p: this.car.bulletMesh[1].position,
-                                c: this.car.lastBulletCounter[1]
+                                c: this.car.lastBulletCounter[1],
                             },
                             {
                                 p: this.car.bulletMesh[2].position,
-                                c: this.car.lastBulletCounter[2]
+                                c: this.car.lastBulletCounter[2],
                             },
                         ],
                     })
@@ -147,8 +145,6 @@ export default class Game {
             (message: { p: string; pos: THREE.Vector3; dir: CANNON.Vec3 }) => {
                 if (this.gamePhase === 1) {
                     if (message.p === this.myId) {
-                        //console.log(message.dir)
-
                         //detach and re position camera before blowing up car
                         const v = this.earth.getSpawnPosition(
                             this.car.frameMesh.position
@@ -168,7 +164,7 @@ export default class Game {
                             )
                         )
                     }
-                    //console.log(message.pos.x, message.pos.y, message.pos.z)
+
                     this.explosions.forEach((e) => {
                         e.explode(message.pos)
                     })
@@ -194,18 +190,6 @@ export default class Game {
                 this.explosionSound.play()
                 console.log('playing explosion sound')
             }
-        })
-
-        this.socket.on('explosion', (p: THREE.Vector3) => {
-            // this.explosions.forEach((e) => {
-            //     e.explode(p)
-            // })
-            // this.explosionSound.position.copy(p)
-            // if (this.explosionSound.isPlaying) {
-            //     this.explosionSound.stop()
-            // }
-            // this.explosionSound.play()
-            // console.log('playing explosion sound')
         })
 
         this.socket.on('winner', (screenName: string, recentWinners: []) => {
@@ -292,10 +276,13 @@ export default class Game {
                 if (p !== this.myId) {
                     if (!this.players[p]) {
                         console.log('adding player ' + p)
-                        this.players[p] = new Player(this.scene, this.physics, this.listener)
+                        this.players[p] = new Player(
+                            this.scene,
+                            this.physics,
+                            this.listener
+                        )
                     }
                     this.players[p].updateTargets(gameData.players[p])
-                    //console.log('player ' + p + ' ' + gameData.players[p].e)
                 }
             })
             Object.keys(gameData.moons).forEach((m) => {

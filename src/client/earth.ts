@@ -10,10 +10,10 @@ export default class Earth {
     mesh = new THREE.Mesh()
     lightPivot: THREE.Object3D
     earthBody = new CANNON.Body()
+    ambientLight: THREE.AmbientLight
+    light: THREE.DirectionalLight
 
     constructor(scene: THREE.Scene, physics: Physics, car: Car) {
-        //this.world = world
-
         const earthTexture = new THREE.TextureLoader().load(
             'img/worldColour.5400x2700.jpg'
         )
@@ -62,40 +62,41 @@ export default class Earth {
             }
         )
 
-        
-        // this.mesh = new THREE.Mesh(new THREE.SphereGeometry(110), earthMaterial)
+        // this.mesh = new THREE.Mesh(
+        //     new THREE.SphereGeometry(100, 16, 16),
+        //     earthMaterial
+        // )
         // scene.add(this.mesh)
         // this.earthBody = new CANNON.Body({
         //     mass: 0,
         //     material: physics.groundMaterial,
-        // })        
-        // this.earthBody.addShape(new CANNON.Sphere(110))
+        // })
+        // this.earthBody.addShape(new CANNON.Sphere(100))
         // physics.world.addBody(this.earthBody)
         // const startPosition = this.getSpawnPosition()
         // car.spawn(startPosition)
 
+        this.ambientLight = new THREE.AmbientLight(0xffffff, 0.5)
+        scene.add(this.ambientLight)
 
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.1)
-        scene.add(ambientLight)
-
-        const light = new THREE.DirectionalLight(0xffffff, 2)
-        light.position.set(0, 0, 500)
-        light.castShadow = true
-        light.shadow.bias = -0.002
-        light.shadow.mapSize.width = 16384
-        light.shadow.mapSize.height = 16384
-        light.shadow.camera.left = -150
-        light.shadow.camera.right = 150
-        light.shadow.camera.top = -150
-        light.shadow.camera.bottom = 150
-        light.shadow.camera.near = 350
-        light.shadow.camera.far = 600
+        this.light = new THREE.DirectionalLight(0xffffff, 2)
+        this.light.position.set(0, 0, 500)
+        this.light.castShadow = true
+        this.light.shadow.bias = -0.002
+        this.light.shadow.mapSize.width = 512
+        this.light.shadow.mapSize.height = 512
+        this.light.shadow.camera.left = -150
+        this.light.shadow.camera.right = 150
+        this.light.shadow.camera.top = -150
+        this.light.shadow.camera.bottom = 150
+        this.light.shadow.camera.near = 350
+        this.light.shadow.camera.far = 750
 
         this.lightPivot = new THREE.Object3D()
-        this.lightPivot.add(light)
+        this.lightPivot.add(this.light)
         scene.add(this.lightPivot)
 
-        new Cosmos(scene, light)
+        new Cosmos(scene, this.light)
     }
 
     getSpawnPosition(p?: THREE.Vector3) {

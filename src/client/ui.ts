@@ -3,30 +3,41 @@ import Game from './game'
 import { TWEEN } from 'three/examples/jsm/libs/tween.module.min'
 
 export default class UI {
-    public menuActive: boolean
-    public recentWinnersTable: HTMLTableElement
-    public startButton: HTMLButtonElement
-    public menuPanel: HTMLDivElement
-    public newGameAlert: HTMLDivElement
-    public gameClosedAlert: HTMLDivElement
-    public keyCheckInterval: NodeJS.Timer
-
-    rendererDomElement: HTMLCanvasElement
+    menuActive: boolean
+    recentWinnersTable: HTMLTableElement
+    startButton: HTMLButtonElement
+    menuPanel: HTMLDivElement
+    newGameAlert: HTMLDivElement
+    gameClosedAlert: HTMLDivElement
+    keyCheckInterval: NodeJS.Timer
+    shadowsEnabledCheckbox: HTMLInputElement
+    shadowMapSize: HTMLSelectElement
+    ambientLightIntensity: HTMLSelectElement
+    renderer: THREE.WebGLRenderer
     game: Game
     camAngle = 0
 
     public keyMap: { [id: string]: boolean } = {}
 
-    constructor(game: Game, rendererDomElement: HTMLCanvasElement) {
+    constructor(game: Game, renderer: THREE.WebGLRenderer) {
         this.game = game
-        this.rendererDomElement = rendererDomElement
-        this.menuActive = true
+        this.renderer = renderer
+        this.menuActive = false
         this.recentWinnersTable = document.getElementById(
             'recentWinnersTable'
         ) as HTMLTableElement
         this.startButton = document.getElementById(
             'startButton'
         ) as HTMLButtonElement
+        this.shadowsEnabledCheckbox = document.getElementById(
+            'shadowsEnabledCheckbox'
+        ) as HTMLInputElement
+        this.shadowMapSize = document.getElementById(
+            'shadowMapSize'
+        ) as HTMLSelectElement
+        this.ambientLightIntensity = document.getElementById(
+            'ambientLightIntensity'
+        ) as HTMLSelectElement
         this.menuPanel = document.getElementById('menuPanel') as HTMLDivElement
         this.newGameAlert = document.getElementById(
             'newGameAlert'
@@ -38,16 +49,57 @@ export default class UI {
         this.startButton.addEventListener(
             'click',
             () => {
-                rendererDomElement.requestPointerLock()
+                renderer.domElement.requestPointerLock()
             },
             false
         )
+
+        this.shadowsEnabledCheckbox.addEventListener(
+            'change',
+            () => {
+                if (this.shadowsEnabledCheckbox.checked) {
+                    //this.renderer.shadowMap.enabled = true
+                    this.game.earth.light.shadow.mapSize.width = Number(
+                        this.shadowMapSize.value
+                    )
+                    this.game.earth.light.shadow.mapSize.height = Number(
+                        this.shadowMapSize.value
+                    )
+                    this.renderer.shadowMap.autoUpdate = true
+                    this.renderer.shadowMap.needsUpdate = true
+                    ;(this.game.earth.light.shadow.map as any) = null
+                } else {
+                    //this.renderer.shadowMap.enabled = false
+                    this.renderer.shadowMap.autoUpdate = false
+                    this.renderer.shadowMap.needsUpdate = true
+                    ;(this.game.earth.light.shadow.map as any) = null
+                    this.renderer.clear()
+                }
+            },
+            false
+        )
+
+        this.shadowMapSize.addEventListener('change', () => {
+            ;(this.game.earth.light.shadow.map as any) = null
+            this.game.earth.light.shadow.mapSize.width = Number(
+                this.shadowMapSize.value
+            )
+            this.game.earth.light.shadow.mapSize.height = Number(
+                this.shadowMapSize.value
+            )
+        })
+
+        this.ambientLightIntensity.addEventListener('change', () => {
+            this.game.earth.ambientLight.intensity = Number(
+                this.ambientLightIntensity.value
+            )
+        })
 
         document.addEventListener('pointerlockchange', this.lockChangeAlert, false)
         ;(
             document.getElementById('screenNameInput') as HTMLInputElement
         ).addEventListener('keyup', (e) => {
-            if (e.which === 13) blur()
+            if (e.key === 'Enter') blur()
         })
         ;(
             document.getElementById('screenNameInput') as HTMLInputElement
@@ -132,15 +184,15 @@ export default class UI {
 
     lockChangeAlert = () => {
         if (
-            document.pointerLockElement === this.rendererDomElement ||
-            (document as any).mozPointerLockElement === this.rendererDomElement
+            document.pointerLockElement === this.renderer.domElement ||
+            (document as any).mozPointerLockElement === this.renderer.domElement
         ) {
-            this.rendererDomElement.addEventListener(
+            this.renderer.domElement.addEventListener(
                 'mousemove',
                 this.onDocumentMouseMove,
                 false
             )
-            this.rendererDomElement.addEventListener(
+            this.renderer.domElement.addEventListener(
                 'mousewheel',
                 this.onDocumentMouseWheel,
                 false
@@ -163,12 +215,12 @@ export default class UI {
                 .easing(TWEEN.Easing.Cubic.Out)
                 .start()
         } else {
-            this.rendererDomElement.removeEventListener(
+            this.renderer.domElement.removeEventListener(
                 'mousemove',
                 this.onDocumentMouseMove,
                 false
             )
-            this.rendererDomElement.removeEventListener(
+            this.renderer.domElement.removeEventListener(
                 'mousewheel',
                 this.onDocumentMouseWheel,
                 false
@@ -195,9 +247,7 @@ export default class UI {
     }
 
     onClick = () => {
-        //this.game.socket.emit('shoot')
         this.game.car.shoot()
-        //console.log("shoot")
         return false
     }
 

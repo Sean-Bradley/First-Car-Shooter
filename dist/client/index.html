@@ -14,11 +14,12 @@
                 margin: 0;
                 height: 100%;
                 font-family: monospace;
+                color: #dddddd;
                 background-color: black;
             }
 
             h1 {
-                font-size: 64px;
+                font-size: 56px;
             }
 
             h2 {
@@ -32,7 +33,6 @@
                 width: 400px;
                 height: 400px;
                 pointer-events: none;
-                color: white;
             }
 
             #gameClock {
@@ -44,7 +44,6 @@
                 height: 78px;
                 font-size: 72px;
                 text-align: center;
-                color: white;
                 pointer-events: none;
             }
 
@@ -56,7 +55,6 @@
                 margin-left: -250px;
                 top: 50%;
                 left: 50%;
-                color: white;
                 /* border: 1px solid red; */
                 text-align: center;
                 pointer-events: none;
@@ -71,7 +69,6 @@
                 margin-left: -250px;
                 top: 50%;
                 left: 50%;
-                color: white;
                 /* border: 1px solid red; */
                 text-align: center;
                 pointer-events: none;
@@ -88,20 +85,21 @@
 
             #menuPanel {
                 position: absolute;
-                background-color: rgba(255, 255, 255, 0.15);
                 top: 0px;
                 left: 0px;
                 width: 100%;
                 height: 100%;
                 pointer-events: none;
-                /* display: none; */
+                display: none;
             }
 
             #menuPanel a {
                 pointer-events: auto;
+                color: #dddddd;
             }
 
             #instructions {
+                background-color: rgba(0, 0, 0, 0.5);
                 height: 600px;
                 width: 800px;
                 margin-top: -300px;
@@ -109,8 +107,8 @@
                 position: relative;
                 top: 50%;
                 left: 50%;
-                font-size: 21px;
-                border: 1px solid black;
+                font-size: 17px;
+                border: 1px solid gray;
                 text-align: center;
                 pointer-events: none;
             }
@@ -129,14 +127,19 @@
                 pointer-events: auto;
             }
 
+            #shadowsEnabledCheckbox,
+            #shadowMapSize,
+            #ambientLightIntensity {
+                pointer-events: auto;
+            }
+
             #recentWinnersTable {
                 position: absolute;
                 width: 200px;
                 height: 270px;
-                border: 1px solid black;
+                border: 1px solid gray;
                 right: 20px;
                 top: 20px;
-                color: white;
                 font-size: 17px;
                 display: none;
             }
@@ -276,8 +279,17 @@
         <div id="gameClock"></div>
         <div id="menuPanel">
             <div id="instructions">
-                <h1>First Car Shooter</h1>
+                <h1>FIRST CAR SHOOTER (FCS)</h1>
                 <h2>Multiplayer FCS written in ThreeJS, CannonJS and SocketIO</h2>
+                <p>
+                    GitHub :
+                    <a
+                        href="https://github.com/Sean-Bradley/First-Car-Shooter"
+                        target="_blank"
+                        >https://github.com/Sean-Bradley/First-Car-Shooter</a
+                    >
+                </p>
+
                 Drive: WASD<br />
                 Brakes: SPACE<br />
                 Look: MOUSE<br />
@@ -293,6 +305,33 @@
                     />
                 </div>
                 <button id="startButton">Click to Start</button><br />
+
+                <div>
+                    <label for="email">Enable Shadows :</label>
+                    <input type="checkbox" id="shadowsEnabledCheckbox" />
+                    <label for="email">Shadow Map Size :</label>
+                    <select id="shadowMapSize">
+                        <option value="512">512</option>
+                        <option value="1024">1024</option>
+                        <option value="2048">2048</option>
+                        <option value="4096">4096</option>
+                        <option value="8192">8192</option>
+                        <option value="16384">16384</option>
+                    </select>
+                    <label for="email">Ambient Light :</label>
+                    <select id="ambientLightIntensity">
+                        <option value=".1">.1</option>
+                        <option value=".2">.2</option>
+                        <option value=".3">.3</option>
+                        <option value=".4">.4</option>
+                        <option value=".5" selected>.5</option>
+                        <option value=".6">.6</option>
+                        <option value=".7">.7</option>
+                        <option value=".8">.8</option>
+                        <option value=".9">.9</option>
+                        <option value="1">1</option>
+                    </select>
+                </div>
 
                 <p>
                     This is a multiplayer game constructed using Threejs, SocketIO

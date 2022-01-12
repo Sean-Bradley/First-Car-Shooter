@@ -655,11 +655,6 @@ export default class Car {
             this.bulletMesh[i].position.x = this.bulletBody[i].position.x
             this.bulletMesh[i].position.y = this.bulletBody[i].position.y
             this.bulletMesh[i].position.z = this.bulletBody[i].position.z
-            // this.bulletMesh[i].quaternion.x = this.bulletBody[i].quaternion.x
-            // this.bulletMesh[i].quaternion.y = this.bulletBody[i].quaternion.y
-            // this.bulletMesh[i].quaternion.z = this.bulletBody[i].quaternion.z
-            // this.bulletMesh[i].quaternion.w = this.bulletBody[i].quaternion.w
-            //this.player.b[i].c = this.lastBulletCounter[i]
             this.bulletMesh[i].rotation.x += 0.1
             this.bulletMesh[i].rotation.y += 0.05
         }
@@ -692,9 +687,6 @@ export default class Car {
             this.physics.world.addConstraint(this.constraintRF)
             this.physics.world.addConstraint(this.constraintLB)
             this.physics.world.addConstraint(this.constraintRB)
-            //this.enabled = true
-
-            //this.socket.emit('enable')
         }
     }
 }
