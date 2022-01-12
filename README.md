@@ -4,9 +4,9 @@ Multiplayer First Car Shooter (FCS) written in Three.js with server side CannonJ
 
 Playable Demo : [https://fcs.sbcode.net](https://fcs.sbcode.net)
 
-![Screen Grab](docs/screen-grab.jpg)
+![Demo](docs/demo.gif)
 
-## Installing
+## Develop
 
 1. Clone Repository
 
@@ -40,14 +40,39 @@ npm run dev
 
 6. Visit [http://127.0.0.1:8080](http://127.0.0.1:8080)
 
-* Drive : W, A, S, D
-* Brakes : Space
-* Aim : Mouse
-* Shoot : Mouse Left Click
-
+-   Drive : W, A, S, D
+-   Brakes : Space
+-   Aim : Mouse
+-   Shoot : Mouse Left Click
 
 7. Edit project in VSCode
 
 ```bash
 code .
 ```
+
+## Build
+
+1. Build webpack production version.
+
+```
+npm run build
+```
+
+2. Compile nodejs server script
+
+```
+tsc -p ./src/server
+```
+
+3. Start
+
+```
+npm start
+```
+
+4. Visit [http://127.0.0.1:3000](http://127.0.0.1:3000)
+
+Server script uses Express and SocketIO on port 3000
+
+For more in depth information some deployment options, such as SSL, Domain name & Cloud hosting, visit [https://sbcode.net/threejs/nginx-host/](https://sbcode.net/threejs/nginx-host/)
