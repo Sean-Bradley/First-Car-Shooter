@@ -1,13 +1,12 @@
-# First Car Shooter
+# First Car Shooter (FCS)
 
-Multiplayer First Car Shooter (FCS) written in Three.js with server side CannonJS physics and SocketIO
+Multiplayer FCS written in Three.js, SOcketIO and with client and server side CannonJS physics.
 
 Playable Demo : [https://fcs.sbcode.net](https://fcs.sbcode.net)
 
 ![Demo](docs/demo.gif)
 
--   10 points for shooting moons
--   100 points for shooting other players
+## About
 
 This is an experiment with,
 
@@ -16,6 +15,19 @@ This is an experiment with,
 -   uses CANNON.Trimesh for ground topography
 -   multiplayer using socket.io
 -   sfx with THREE.AudioListener
+
+## Scoring
+
+-   10 points for shooting moons
+-   100 points for shooting other players
+
+## Commands
+
+-   Drive: WASD
+-   Brakes: SPACE
+-   Look: MOUSE
+-   Shoot: Left Mouse Click
+-   Respawn : R
 
 ## Develop
 
