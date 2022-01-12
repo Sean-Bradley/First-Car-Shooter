@@ -6,6 +6,17 @@ Playable Demo : [https://fcs.sbcode.net](https://fcs.sbcode.net)
 
 ![Demo](docs/demo.gif)
 
+-   10 points for shooting moons
+-   100 points for shooting other players
+
+This is an experiment with,
+
+-   spherical earth physics (sorry flat earthers)
+-   some CannonJS physics calculated server side, everything else calculated client side
+-   uses CANNON.Trimesh for ground topography
+-   multiplayer using socket.io
+-   sfx with THREE.AudioListener
+
 ## Develop
 
 1. Clone Repository
