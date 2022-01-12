@@ -1,6 +1,5 @@
 # Blender v2.93.1 OBJ File: 'topoearth6ForThreejs.blend'
 # www.blender.org
-mtllib topoEarth_3.mtl
 o Plane
 v -0.820230 -125.216049 -0.481695
 v -0.820230 -125.265053 -0.481695

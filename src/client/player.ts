@@ -375,6 +375,23 @@ export default class Player {
             this.bulletMesh[i].geometry.dispose()
             this.scene.remove(this.bulletMesh[i])
         }
+
+        this.scene.remove(this.wheelLFMesh)
+        this.scene.remove(this.wheelRFMesh)
+        this.scene.remove(this.wheelLBMesh)
+        this.scene.remove(this.wheelRBMesh)
+        this.scene.remove(this.turretPivot)
+        this.scene.remove(this.turretMesh)
+        this.scene.remove(this.frameMesh)
+
+        this.physics.world.removeBody(this.wheelLFBody)
+        this.physics.world.removeBody(this.wheelRFBody)
+        this.physics.world.removeBody(this.wheelLBBody)
+        this.physics.world.removeBody(this.wheelRBBody)
+        this.physics.world.removeBody(this.frameBody)
+
+        // work in progress
+        //console.log('scene object count = ' + this.scene.children.length)
         //this.wheelLFMesh.traverse((child: THREE.Object3D) => {
         // if ((child as THREE.Group).isGroup) {
         //     console.log('here a')
@@ -397,21 +414,5 @@ export default class Player {
         //     ;(child as THREE.Mesh).geometry.dispose()
         // }
         //})
-
-        this.scene.remove(this.wheelLFMesh)
-        this.scene.remove(this.wheelRFMesh)
-        this.scene.remove(this.wheelLBMesh)
-        this.scene.remove(this.wheelRBMesh)
-        this.scene.remove(this.turretPivot)
-        this.scene.remove(this.turretMesh)
-        this.scene.remove(this.frameMesh)
-
-        this.physics.world.removeBody(this.wheelLFBody)
-        this.physics.world.removeBody(this.wheelRFBody)
-        this.physics.world.removeBody(this.wheelLBBody)
-        this.physics.world.removeBody(this.wheelRBBody)
-        this.physics.world.removeBody(this.frameBody)
-
-        console.log('scene object count = ' + this.scene.children.length)
     }
 }

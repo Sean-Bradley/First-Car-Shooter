@@ -16,7 +16,7 @@ export default class Physics {
             this.wheelMaterial,
             this.groundMaterial,
             {
-                friction: 0.33,
+                friction: 0.4,
                 restitution: 0.5,
                 contactEquationStiffness: 1000,
             }

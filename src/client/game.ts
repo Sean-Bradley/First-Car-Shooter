@@ -81,7 +81,9 @@ export default class Game {
         this.socket.on('disconnect', (message: any) => {
             console.log('disconnected ' + message)
             clearInterval(this.updateInterval)
-            //todo remove other players cars
+            Object.keys(this.players).forEach((p) => {
+                this.players[p].dispose()
+            })
         })
         this.socket.on(
             'joined',
@@ -213,7 +215,6 @@ export default class Game {
         })
 
         this.socket.on('removePlayer', (p: string) => {
-            //todo dispose player
             console.log('deleting player ' + p)
             this.players[p].dispose()
             delete this.players[p]
@@ -240,6 +241,11 @@ export default class Game {
                         this.car.fix()
                         const pos = this.earth.getSpawnPosition()
                         this.car.spawn(pos)
+
+                        new TWEEN.Tween(this.car.chaseCam.position)
+                            .to({ z: 4 })
+                            .easing(TWEEN.Easing.Cubic.Out)
+                            .start()
                     }
                 }
                 ;(

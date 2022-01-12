@@ -37,7 +37,7 @@ class Physics {
         this.moons = {};
         this.io = io;
         const loader = new OBJLoader_js_1.OBJLoader();
-        const data = fs_1.default.readFileSync(path_1.default.resolve(__dirname, '../client/models/topoEarth_3.obj'), { encoding: 'utf8', flag: 'r' });
+        const data = fs_1.default.readFileSync(path_1.default.resolve(__dirname, '../client/models/topoEarth.obj'), { encoding: 'utf8', flag: 'r' });
         const obj = loader.parse(data);
         obj.traverse((child) => {
             if (child.isMesh) {

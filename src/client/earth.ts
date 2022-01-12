@@ -22,7 +22,7 @@ export default class Earth {
 
         const objLoader = new OBJLoader()
         objLoader.load(
-            'models/topoEarth_3.obj',
+            'models/topoEarth.obj',
             (obj) => {
                 obj.traverse((child) => {
                     if ((child as THREE.Mesh).isMesh) {

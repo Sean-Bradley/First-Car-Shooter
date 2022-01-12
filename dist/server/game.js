@@ -32,35 +32,39 @@ class Game {
         this.gameId = 0;
         this.gameWinner = '';
         this.recentWinners = [
+            { screenName: 'fcs', score: 120 },
+            { screenName: 'sbcode', score: 110 },
             { screenName: 'SeanWasEre', score: 100 },
-            { screenName: 'sbcode', score: 90 },
+            { screenName: 'cosmo', score: 90 },
+            { screenName: 'emmy', score: 80 },
         ];
         this.winnersCalculated = false;
         this.players = {};
         this.playerCount = 0;
         this.recalcWinnersTable = () => {
             let highestScore = 0;
-            let highestScorePlayer = new player_1.default();
+            let highestScoreScreenName = '';
+            //add all players with score > 0
             Object.keys(this.players).forEach((p) => {
-                console.log('score = ' + this.players[p].s);
+                if (this.players[p].s > 0) {
+                    this.recentWinners.push({
+                        screenName: this.players[p].sn,
+                        score: this.players[p].s,
+                    });
+                }
                 if (this.players[p].s > highestScore) {
                     highestScore = this.players[p].s;
-                    highestScorePlayer = this.players[p];
+                    highestScoreScreenName = this.players[p].sn;
                 }
             });
-            if (highestScore > 0) {
-                this.gameWinner = highestScorePlayer.sn;
-                this.recentWinners.push({
-                    screenName: highestScorePlayer.sn,
-                    score: highestScore,
-                });
-                //sort
-                this.recentWinners.sort((a, b) => a.score < b.score ? 1 : b.score < a.score ? -1 : 0);
-                //keep top 10
-                while (this.recentWinners.length > 10) {
-                    this.recentWinners.pop();
-                }
-                this.io.emit('winner', highestScorePlayer.sn, this.recentWinners);
+            //sort
+            this.recentWinners.sort((a, b) => a.score < b.score ? 1 : b.score < a.score ? -1 : 0);
+            //keep top scores
+            while (this.recentWinners.length > 7) {
+                this.recentWinners.pop();
+            }
+            if (highestScoreScreenName != '') {
+                this.io.emit('winner', highestScoreScreenName, this.recentWinners);
             }
             this.winnersCalculated = true;
         };

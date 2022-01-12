@@ -31,7 +31,7 @@ class Moon {
     }
     randomise() {
         const outside = new THREE.Vector3(Math.random() * 2 - 1, Math.random() * 2 - 1, Math.random() * 2 - 1).normalize();
-        outside.multiplyScalar(250);
+        outside.multiplyScalar(150);
         this.sphereBody.position.x = outside.x;
         this.sphereBody.position.y = outside.y;
         this.sphereBody.position.z = outside.z;
