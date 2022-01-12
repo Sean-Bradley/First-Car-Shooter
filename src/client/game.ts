@@ -5,12 +5,13 @@ import * as CANNON from 'cannon-es'
 import Physics from './physics'
 import CannonDebugRenderer from './utils/cannonDebugRenderer'
 import Car from './car'
-//import Moon from './moon'
 import { io, Socket } from 'socket.io-client'
 import Player from './player'
 import Explosion from './explosion'
 import Moon from './moon'
+//import Spring from './spring'
 import { TWEEN } from 'three/examples/jsm/libs/tween.module.min'
+import { CSS2DRenderer } from 'three/examples/jsm/renderers/CSS2DRenderer'
 import CannonUtils from './utils/cannonUtils'
 
 export default class Game {
@@ -18,6 +19,7 @@ export default class Game {
     camera: THREE.PerspectiveCamera
     renderer: THREE.WebGLRenderer
     listener: THREE.AudioListener
+    labelRenderer: CSS2DRenderer
     car: Car
     earth: Earth
     physics: Physics
@@ -31,18 +33,21 @@ export default class Game {
     players: { [id: string]: Player } = {}
     explosions: Explosion[]
     moons: { [id: string]: Moon } = {}
+    //springs: { [id: string]: Spring } = {}
     explosionSound: THREE.PositionalAudio
 
     constructor(
         scene: THREE.Scene,
         camera: THREE.PerspectiveCamera,
         renderer: THREE.WebGLRenderer,
-        listener: THREE.AudioListener
+        listener: THREE.AudioListener,
+        labelRenderer: CSS2DRenderer
     ) {
         this.scene = scene
         this.camera = camera
         this.renderer = renderer
         this.listener = listener
+        this.labelRenderer = labelRenderer
         this.ui = new UI(this, renderer)
         this.physics = new Physics()
         this.socket = io()
@@ -57,6 +62,7 @@ export default class Game {
         )
         this.earth = new Earth(this.scene, this.physics, this.car)
         this.car.earth = this.earth
+
         this.cannonDebugRenderer = new CannonDebugRenderer(
             this.scene,
             this.physics.world
@@ -66,6 +72,10 @@ export default class Game {
             new Explosion(new THREE.Color(0x00ff00), this.scene),
             new Explosion(new THREE.Color(0x0000ff), this.scene),
         ]
+        // for (let i = 0; i < 10; i++) {
+        //     this.springs[i] = new Spring(this.scene, this.earth) // this.physics,
+        // }
+
         const audioLoader = new THREE.AudioLoader()
         const explosionSound = new THREE.PositionalAudio(this.listener)
         audioLoader.load('sounds/explosion.ogg', (buffer) => {
@@ -247,6 +257,10 @@ export default class Game {
                             .easing(TWEEN.Easing.Cubic.Out)
                             .start()
                     }
+
+                    // Object.keys(this.springs).forEach((s) => {
+                    //     this.springs[s].randomise()
+                    // })
                 }
                 ;(
                     document.getElementById('gameClock') as HTMLDivElement
@@ -316,6 +330,9 @@ export default class Game {
         Object.keys(this.moons).forEach((m) => {
             this.moons[m].update()
         })
+        // Object.keys(this.springs).forEach((s) => {
+        //     this.springs[s].update(this.car)
+        // })
 
         this.earth.update(delta)
 

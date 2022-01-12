@@ -6,7 +6,7 @@ export default class Moon {
     physics: Physics
     mesh: THREE.Mesh
     body: CANNON.Body
-    moonMaterial: THREE.MeshStandardMaterial
+    material: THREE.MeshStandardMaterial
     targetPosMesh = new THREE.Vector3()
     targetQuatMesh = new THREE.Quaternion()
     enabled = false
@@ -14,11 +14,11 @@ export default class Moon {
     constructor(scene: THREE.Scene, physics: Physics) {
         this.physics = physics
 
-        this.moonMaterial = new THREE.MeshStandardMaterial()
-        this.moonMaterial.map = new THREE.TextureLoader().load(
+        this.material = new THREE.MeshStandardMaterial()
+        this.material.map = new THREE.TextureLoader().load(
             'img/moon_540x270.jpg'
         )
-        this.mesh = new THREE.Mesh(new THREE.SphereGeometry(10), this.moonMaterial)
+        this.mesh = new THREE.Mesh(new THREE.SphereGeometry(10), this.material)
         this.mesh.castShadow = true
         this.mesh.receiveShadow = true
 

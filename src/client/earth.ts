@@ -122,14 +122,14 @@ export default class Earth {
         raycaster.set(outside, inside)
 
         const intersects = raycaster.intersectObject(this.mesh, false)
-        let startPosition = new THREE.Vector3()
+        let pos = new THREE.Vector3()
         if (intersects.length > 0) {
-            startPosition = intersects[0].point.addScaledVector(
+            pos = intersects[0].point.addScaledVector(
                 outside.normalize(),
                 4
             )
         }
-        return startPosition
+        return pos
     }
 
     update(delta: number) {

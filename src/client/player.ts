@@ -6,6 +6,10 @@ import {
     Lensflare,
     LensflareElement,
 } from 'three/examples/jsm/objects/Lensflare.js'
+import {
+    CSS2DRenderer,
+    CSS2DObject,
+} from 'three/examples/jsm/renderers/CSS2DRenderer'
 
 export default class Player {
     scene: THREE.Scene
@@ -31,6 +35,7 @@ export default class Player {
 
     public enabled = false
     public screenName = ''
+    public lastScreenName = ''
 
     targetPosFrame = new THREE.Vector3()
     targetQuatFrame = new THREE.Quaternion()
@@ -50,6 +55,8 @@ export default class Player {
     shootSound: THREE.PositionalAudio
 
     lensflares = [new Lensflare(), new Lensflare(), new Lensflare()]
+
+    annotationDiv = document.createElement('div')
 
     constructor(
         scene: THREE.Scene,
@@ -155,6 +162,12 @@ export default class Player {
                         console.log(error)
                     }
                 )
+
+                this.annotationDiv.className = 'annotationLabel'
+                this.annotationDiv.innerHTML = this.screenName
+                const annotationLabel = new CSS2DObject(this.annotationDiv)
+                annotationLabel.position.copy(this.turretMesh.position)
+                this.turretMesh.add(annotationLabel)
             },
             (xhr) => {
                 console.log((xhr.loaded / xhr.total) * 100 + '% loaded')
@@ -225,6 +238,13 @@ export default class Player {
     }
 
     updateTargets(data: any) {
+        this.screenName = data.sn
+        if(this.lastScreenName !== this.screenName){
+            //changed
+            this.annotationDiv.innerHTML = this.screenName
+            this.lastScreenName = this.screenName
+        }
+
         this.targetPosFrame.set(data.p.x, data.p.y, data.p.z)
         this.targetPosTurret.set(data.tp.x, data.tp.y, data.tp.z)
         this.targetPosWheelLF.set(data.w[0].p.x, data.w[0].p.y, data.w[0].p.z)

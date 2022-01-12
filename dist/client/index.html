@@ -100,10 +100,10 @@
 
             #instructions {
                 background-color: rgba(0, 0, 0, 0.5);
-                height: 600px;
-                width: 800px;
-                margin-top: -300px;
-                margin-left: -400px;
+                height: 640px;
+                width: 760px;
+                margin-top: -320px;
+                margin-left: -380px;
                 position: relative;
                 top: 50%;
                 left: 50%;
@@ -146,6 +146,13 @@
 
             #recentWinnersTable th {
                 text-align: left;
+            }
+
+            .annotationLabel {
+                color: #00ff00;
+                font-family: monospace;
+                pointer-events: none;
+                font-size: 14px;
             }
 
             /* #XYControllerMove {
@@ -304,8 +311,9 @@
                         onClick="this.select();"
                     />
                 </div>
-                <button id="startButton">Click to Start</button><br />
-
+                <button id="startButton">Click to Start</button>
+                <br />
+                <br />
                 <div>
                     <label for="email">Enable Shadows :</label>
                     <input type="checkbox" id="shadowsEnabledCheckbox" />
