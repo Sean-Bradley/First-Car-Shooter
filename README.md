@@ -1,6 +1,6 @@
 # First Car Shooter (FCS)
 
-Multiplayer FCS written in Three.js, SOcketIO and with client and server side CannonJS physics.
+Multiplayer FCS written in Three.js, SocketIO and with client and server side CannonJS physics.
 
 Playable Demo : [https://fcs.sbcode.net](https://fcs.sbcode.net)
 
@@ -10,10 +10,10 @@ Playable Demo : [https://fcs.sbcode.net](https://fcs.sbcode.net)
 
 This is an experiment with,
 
--   spherical earth physics (sorry flat earthers)
+-   spherical gravity
 -   some CannonJS physics calculated server side, everything else calculated client side
 -   uses CANNON.Trimesh for ground topography
--   multiplayer using socket.io
+-   multiplayer using SocketIO
 -   sfx with THREE.AudioListener
 
 ## Scoring
@@ -98,4 +98,4 @@ npm start
 
 Server script uses Express and SocketIO on port 3000
 
-For more in depth information some deployment options, such as SSL, Domain name & Cloud hosting, visit [https://sbcode.net/threejs/nginx-host/](https://sbcode.net/threejs/nginx-host/)
+For more in depth information on some deployment options, such as SSL, Domain name & Cloud hosting, visit [https://sbcode.net/threejs/nginx-host/](https://sbcode.net/threejs/nginx-host/)
