@@ -148,22 +148,17 @@ export default class UI {
 
             if (!car.thrusting) {
                 //not going forward or backwards so gradually slow down
-                if (car.forwardVelocity > 0) {
-                    car.forwardVelocity -= 0.25
-                }
-                if (car.forwardVelocity < 0) {
-                    car.forwardVelocity += 0.25
-                }
+                car.forwardVelocity = this.lerp(car.forwardVelocity, 0, 0.01)
             }
             if (!car.steering) {
-                if (car.rightVelocity > 0) {
-                    car.rightVelocity -= 0.05
-                }
-                if (car.rightVelocity < 0) {
-                    car.rightVelocity += 0.05
-                }
+                //not steering, so gradually straighten steering
+                car.rightVelocity = this.lerp(car.rightVelocity, 0, 0.5)
             }
         }, 50)
+    }
+
+    lerp = (x: number, y: number, a: number): number => {
+        return (1 - a) * x + a * y
     }
 
     updateScoreBoard = (recentWinners: []) => {
