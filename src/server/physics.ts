@@ -21,7 +21,7 @@ export default class Physics {
 
         const loader = new OBJLoader()
         const data = fs.readFileSync(
-            path.resolve(__dirname, '../client/models/topoEarth.obj'),
+            path.resolve(__dirname, '../client/models/topoEarth-2.obj'),
             { encoding: 'utf8', flag: 'r' }
         )
 
