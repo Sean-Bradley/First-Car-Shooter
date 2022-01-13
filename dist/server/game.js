@@ -137,7 +137,6 @@ class Game {
             });
         });
         setInterval(() => {
-            this.physics.world.step(0.0125);
             const moonData = [];
             Object.keys(this.physics.moons).forEach((m) => {
                 moonData.push({
@@ -162,8 +161,9 @@ class Game {
                 moons: moonData,
             });
         }, 50);
-        // setInterval(() => {
-        // }, 50)
+        setInterval(() => {
+            this.physics.world.step(0.0125);
+        }, 100);
         setInterval(() => {
             this.gameClock -= 1;
             if (this.gameClock < -5) {
