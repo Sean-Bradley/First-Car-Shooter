@@ -1,23 +1,26 @@
-import Car from './car'
 import Game from './game'
 import { TWEEN } from 'three/examples/jsm/libs/tween.module.min'
+import { Vec2, XYController } from './XYController'
 
 export default class UI {
     menuActive: boolean
-    recentWinnersTable: HTMLTableElement
-    startButton: HTMLButtonElement
+    private recentWinnersTable: HTMLTableElement
+    private startButton: HTMLButtonElement
     menuPanel: HTMLDivElement
     newGameAlert: HTMLDivElement
     gameClosedAlert: HTMLDivElement
-    keyCheckInterval: NodeJS.Timer
-    shadowsEnabledCheckbox: HTMLInputElement
-    shadowMapSize: HTMLSelectElement
-    ambientLightIntensity: HTMLSelectElement
-    renderer: THREE.WebGLRenderer
-    game: Game
-    camAngle = 0
+    private keyCheckInterval: NodeJS.Timer
+    private shadowsEnabledCheckbox: HTMLInputElement
+    private shadowMapSize: HTMLSelectElement
+    private ambientLightIntensity: HTMLSelectElement
+    private renderer: THREE.WebGLRenderer
+    private game: Game
+    private camAngle = 0
 
-    public keyMap: { [id: string]: boolean } = {}
+    private xycontrollerLook?: XYController
+    private xycontrollerMove?: XYController
+
+    keyMap: { [id: string]: boolean } = {}
 
     constructor(game: Game, renderer: THREE.WebGLRenderer) {
         this.game = game
@@ -49,7 +52,26 @@ export default class UI {
         this.startButton.addEventListener(
             'click',
             () => {
-                renderer.domElement.requestPointerLock()
+                if (this.game.isMobile) {
+                    this.xycontrollerLook = new XYController(
+                        document.getElementById(
+                            'XYControllerLook'
+                        ) as HTMLCanvasElement,
+                        this.onXYControllerLook
+                    )
+                    this.xycontrollerMove = new XYController(
+                        document.getElementById(
+                            'XYControllerMove'
+                        ) as HTMLCanvasElement,
+                        this.onXYControllerMove
+                    )
+
+                    this.menuPanel.style.display = 'none'
+                    this.recentWinnersTable.style.display = 'block'
+                    this.menuActive = false
+                } else {
+                    renderer.domElement.requestPointerLock()
+                }
             },
             false
         )
@@ -152,7 +174,7 @@ export default class UI {
             }
             if (!car.steering) {
                 //not steering, so gradually straighten steering
-                car.rightVelocity = this.lerp(car.rightVelocity, 0, 0.5)
+                car.rightVelocity = this.lerp(car.rightVelocity, 0, 0.9)
             }
         }, 50)
     }
@@ -274,5 +296,20 @@ export default class UI {
             const pos = this.game.earth.getSpawnPosition()
             this.game.car.spawn(pos)
         }
+    }
+
+    onXYControllerLook = (vec2: Vec2) => {
+        this.game.car.chaseCamPivot.rotation.y -= vec2.x * 0.1
+        this.camAngle += vec2.y * 0.05
+        this.camAngle = Math.max(Math.min(this.camAngle, 0.5), -0.4)
+        this.game.car.chaseCamPivot.position.y = this.camAngle * 4
+        this.game.car.chaseCam.rotation.x = -this.camAngle
+    }
+
+    onXYControllerMove = (vec2: Vec2) => {
+        let forwardVelocity = vec2.y * 40
+        forwardVelocity = Math.max(forwardVelocity, -20)
+        this.game.car.forwardVelocity = forwardVelocity
+        this.game.car.rightVelocity = vec2.x * -0.6
     }
 }

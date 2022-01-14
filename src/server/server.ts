@@ -40,7 +40,7 @@ class App {
         new Game(this.io)
     }
 
-    public Start() {
+    Start() {
         this.server.listen(this.port, () => {
             console.log(`Server listening on port ${this.port}.`)
         })

@@ -13,66 +13,65 @@ import {
 
 export default class Car {
     earth: null | Earth = null
-    scene: THREE.Scene
-    camera: THREE.PerspectiveCamera
-    physics: Physics
-    socket: Socket
+    //private scene: THREE.Scene
+    private camera: THREE.PerspectiveCamera
+    private physics: Physics
+    private socket: Socket
 
     frameMesh = new THREE.Mesh()
     turretMesh = new THREE.Mesh()
-    turretPivot = new THREE.Object3D()
-    targetQuatTurret = new THREE.Quaternion()
+    private turretPivot = new THREE.Object3D()
+    //private targetQuatTurret = new THREE.Quaternion()
     wheelLFMesh = new THREE.Group()
     wheelRFMesh = new THREE.Group()
     wheelLBMesh = new THREE.Group()
     wheelRBMesh = new THREE.Group()
 
-    tmpVec = new THREE.Vector3()
-    tmpQuat = new THREE.Quaternion()
-    camPos = new THREE.Vector3()
-    camQuat = new THREE.Quaternion()
+    private tmpVec = new THREE.Vector3()
+    private tmpQuat = new THREE.Quaternion()
+    private camPos = new THREE.Vector3()
+    private camQuat = new THREE.Quaternion()
     chaseCamPivot = new THREE.Object3D()
     chaseCam = new THREE.Object3D()
 
     frameBody: CANNON.Body
-    turretBody: CANNON.Body
+    private turretBody: CANNON.Body
     wheelLFBody: CANNON.Body
     wheelRFBody: CANNON.Body
     wheelLBBody: CANNON.Body
     wheelRBBody: CANNON.Body
-    constraintLF: CANNON.HingeConstraint
-    constraintRF: CANNON.HingeConstraint
-    constraintLB: CANNON.HingeConstraint
-    constraintRB: CANNON.HingeConstraint
+    private constraintLF: CANNON.HingeConstraint
+    private constraintRF: CANNON.HingeConstraint
+    private constraintLB: CANNON.HingeConstraint
+    private constraintRB: CANNON.HingeConstraint
 
     bulletMesh = [new THREE.Mesh(), new THREE.Mesh(), new THREE.Mesh()]
-    bulletBody: CANNON.Body[] = []
-    public lastBulletCounter = [-1, -1, -1] //used to decide if a bullet should instantly be repositioned or smoothly lerped
-    public bulletActivated = [false, false, false]
-    bulletId = -1
+    private bulletBody: CANNON.Body[] = []
+    lastBulletCounter = [-1, -1, -1] //used to decide if a bullet should instantly be repositioned or smoothly lerped
+    private bulletActivated = [false, false, false]
+    private bulletId = -1
 
-    public thrusting = false
-    public steering = false
-    public forwardVelocity = 0
-    public rightVelocity = 0
+    thrusting = false
+    steering = false
+    forwardVelocity = 0
+    rightVelocity = 0
 
-    //public partIds: number[] = []
-    public enabled = true
+    enabled = true
 
-    public score: number = 0
+    private score: number = 0
 
-    players: { [id: string]: Player }
-    moons: { [id: string]: Moon }
+    private players: { [id: string]: Player }
+    private moons: { [id: string]: Moon }
 
-    upsideDownCounter = -1
+    private upsideDownCounter = -1
 
-    listener: THREE.AudioListener
+    private listener: THREE.AudioListener
     carSound: THREE.PositionalAudio
-    shootSound: THREE.PositionalAudio
+    private shootSound: THREE.PositionalAudio
 
     cameraTempPosition: THREE.Object3D
 
-    lensflares = [new Lensflare(), new Lensflare(), new Lensflare()]
+    private lensflares = [new Lensflare(), new Lensflare(), new Lensflare()]
     //debugMesh: THREE.Mesh
 
     constructor(
@@ -84,7 +83,6 @@ export default class Car {
         socket: Socket,
         listener: THREE.AudioListener
     ) {
-        this.scene = scene
         this.camera = camera
         this.physics = physics
         this.players = players

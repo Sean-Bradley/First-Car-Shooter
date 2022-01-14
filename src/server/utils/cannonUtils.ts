@@ -11,7 +11,7 @@ interface Face3 {
 }
 
 class CannonUtils {
-    public static CreateTrimesh(
+    static CreateTrimesh(
         geometry: THREE.BufferGeometry
     ): CANNON.Trimesh {
         const vertices = geometry.attributes.position.array as number[]
@@ -19,7 +19,7 @@ class CannonUtils {
         return new CANNON.Trimesh(vertices, indices)
     }
 
-    public static CreateConvexPolyhedron(
+    static CreateConvexPolyhedron(
         geometry: THREE.BufferGeometry
     ): CANNON.ConvexPolyhedron {
         const position = geometry.attributes.position
@@ -105,7 +105,7 @@ class CannonUtils {
         })
     }
 
-    public static offsetCenterOfMass(
+    static offsetCenterOfMass(
         body: CANNON.Body,
         centreOfMass: CANNON.Vec3
     ): void {

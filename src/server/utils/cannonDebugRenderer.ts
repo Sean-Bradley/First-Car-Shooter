@@ -12,8 +12,8 @@ import * as THREE from 'three'
 import * as CANNON from 'cannon-es'
 
 export default class CannonDebugRenderer {
-    public scene: THREE.Scene
-    public world: CANNON.World
+    scene: THREE.Scene
+    world: CANNON.World
     private _meshes: THREE.Mesh[] | THREE.Points[]
     private _material: THREE.MeshBasicMaterial
     private _particleMaterial = new THREE.PointsMaterial()
@@ -54,7 +54,7 @@ export default class CannonDebugRenderer {
         this._particleGeometry.setFromPoints([new THREE.Vector3(0, 0, 0)])
     }
 
-    public update() {
+    update() {
         const bodies: CANNON.Body[] = this.world.bodies
         const meshes: THREE.Mesh[] | THREE.Points[] = this._meshes
         const shapeWorldPosition: CANNON.Vec3 = this.tmpVec0

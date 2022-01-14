@@ -5,15 +5,14 @@ import * as CANNON from 'cannon-es'
 import Earth from './earth'
 
 export default class Spring {
-    earth: Earth
-    mesh = new THREE.Mesh()
-    material: THREE.MeshMatcapMaterial
+    private earth: Earth
+    private mesh = new THREE.Mesh()
 
     constructor(scene: THREE.Scene, earth: Earth) {
         this.earth = earth
-        this.material = new THREE.MeshMatcapMaterial({})
+        const material = new THREE.MeshMatcapMaterial({})
         const texture = new THREE.TextureLoader().load('img/matcap-opal.png')
-        this.material.matcap = texture
+        material.matcap = texture
 
         const objLoader = new OBJLoader()
         objLoader.load(
@@ -24,7 +23,7 @@ export default class Spring {
                         const m = child as THREE.Mesh
                         m.receiveShadow = true
                         m.castShadow = true
-                        m.material = this.material
+                        m.material = material
                         this.mesh = m
                     }
                 })

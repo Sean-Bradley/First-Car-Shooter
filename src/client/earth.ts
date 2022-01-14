@@ -7,9 +7,8 @@ import Cosmos from './cosmos'
 import Car from './car'
 
 export default class Earth {
-    mesh = new THREE.Mesh()
-    lightPivot: THREE.Object3D
-    earthBody = new CANNON.Body()
+    private mesh = new THREE.Mesh()
+    private lightPivot: THREE.Object3D
     ambientLight: THREE.AmbientLight
     light: THREE.DirectionalLight
 
@@ -33,19 +32,19 @@ export default class Earth {
                         this.mesh = m
 
                         const shape = CannonUtils.CreateTrimesh(m.geometry)
-                        this.earthBody = new CANNON.Body({
+                        const earthBody = new CANNON.Body({
                             mass: 0,
                             material: physics.groundMaterial,
                         })
-                        this.earthBody.addShape(shape)
-                        this.earthBody.position.x = m.position.x
-                        this.earthBody.position.y = m.position.y
-                        this.earthBody.position.z = m.position.z
-                        this.earthBody.quaternion.x = m.quaternion.x
-                        this.earthBody.quaternion.y = m.quaternion.y
-                        this.earthBody.quaternion.z = m.quaternion.z
-                        this.earthBody.quaternion.w = m.quaternion.w
-                        physics.world.addBody(this.earthBody)
+                        earthBody.addShape(shape)
+                        earthBody.position.x = m.position.x
+                        earthBody.position.y = m.position.y
+                        earthBody.position.z = m.position.z
+                        earthBody.quaternion.x = m.quaternion.x
+                        earthBody.quaternion.y = m.quaternion.y
+                        earthBody.quaternion.z = m.quaternion.z
+                        earthBody.quaternion.w = m.quaternion.w
+                        physics.world.addBody(earthBody)
 
                         const startPosition = this.getSpawnPosition()
                         car.spawn(startPosition)

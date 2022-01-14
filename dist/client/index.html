@@ -155,130 +155,123 @@
                 font-size: 14px;
             }
 
-            /* #XYControllerMove {
-            position: absolute;
-            width: 180px;
-            height: 180px;
-            left: 0px;
-            bottom: 0px;
-            background-color: rgba(255, 255, 255, 0.1);
-            display: none;
-        }
-
-        #XYControllerLook {
-            position: absolute;
-            width: 180px;
-            height: 180px;
-            right: 0px;
-            bottom: 0px;
-            background-color: rgba(255, 255, 255, 0.1);
-            display: none;
-        } */
-
-            /* @media only screen and (max-width: 812px) {
-
-            #pingStats {
+            #XYControllerLook {
                 position: absolute;
-                top: 50px;
-                left: 4px;
-                width: 100px;
-                height: 100px;
-                pointer-events: none;
-                color: white;
-                font-size: 12px;
+                width: 180px;
+                height: 180px;
+                left: 0px;
+                bottom: 0px;
+                background-color: rgba(255, 255, 255, 0.1);
+                display: none;
             }
 
-            #instructions {
-                height: 260px;
-                width: 600px;
-                margin-top: -130px;
-                margin-left: -300px;
-                position: relative;
-                top: 50%;
-                left: 50%;
-                font-size: 13px;
-                border: 1px solid black;
-                text-align: center;
-                pointer-events: none;
-            }
-
-            h1 {
-                font-size: 24px;
-            }
-
-            h2 {
-                font-size: 17px;
-            }
-
-            #startButton {
-                height: 25px;
-                width: 120px;
-                font-size: 17px;
-                margin: 4px;
-                pointer-events: auto;
-            }
-
-            #screenNameInput {
-                font-size: 14px;
-                width: 100px;
-                pointer-events: auto;
-            }
-
-        } */
-
-            /* @media only screen and (max-width: 375px) {
-            #pingStats {
+            #XYControllerMove {
                 position: absolute;
-                top: 50px;
-                left: 4px;
-                width: 100px;
-                height: 100px;
-                pointer-events: none;
-                color: white;
-                font-size: 10px;
+                width: 180px;
+                height: 180px;
+                right: 0px;
+                bottom: 0px;
+                background-color: rgba(255, 255, 255, 0.1);
+                display: none;
             }
 
-            #recentWinnersTable {
-                position: absolute;
-                width: 100px;
-                height: 100px;
-                border: 1px solid black;
-                right: 4px;
-                top: 4px;
-                color: white;
-                font-size: 10px;
+            @media only screen and (max-width: 812px) {
+                #pingStats {
+                    display: none;
+                }
+
+                #recentWinnersTable {
+                    position: absolute;
+                    width: 120px;
+                    height: 100px;
+                    border: 1px solid black;
+                    right: 4px;
+                    top: 4px;
+                    color: white;
+                    font-size: 9px;
+                }
+
+                #instructions {
+                    height: 300px;
+                    width: 600px;
+                    margin-top: -150px;
+                    margin-left: -300px;
+                    position: relative;
+                    top: 50%;
+                    left: 50%;
+                    font-size: 13px;
+                    border: 1px solid black;
+                    text-align: center;
+                    pointer-events: none;
+                }
+
+                h1 {
+                    font-size: 17px;
+                }
+
+                h2 {
+                    font-size: 14px;
+                }
+
+                #startButton {
+                    height: 25px;
+                    width: 140px;
+                    font-size: 14px;
+                    margin: 4px;
+                    pointer-events: auto;
+                }
+
+                #screenNameInput {
+                    font-size: 14px;
+                    width: 100px;
+                    pointer-events: auto;
+                }
             }
 
-            #instructions {
-                height: 540px;
-                width: 300px;
-                margin-top: -270px;
-                margin-left: -150px;
-                position: relative;
-                top: 50%;
-                left: 50%;
-                font-size: 17px;
-                border: 1px solid black;
-                text-align: center;
-                pointer-events: none;
+            @media only screen and (max-width: 375px) {
+                #pingStats {
+                    display: none;
+                }
+
+                #recentWinnersTable {
+                    position: absolute;
+                    width: 120px;
+                    height: 100px;
+                    border: 1px solid black;
+                    right: 4px;
+                    top: 4px;
+                    color: white;
+                    font-size: 9px;
+                }
+
+                #instructions {
+                    height: 560px;
+                    width: 300px;
+                    margin-top: -270px;
+                    margin-left: -150px;
+                    position: relative;
+                    top: 50%;
+                    left: 50%;
+                    font-size: 14px;
+                    border: 1px solid black;
+                    text-align: center;
+                    pointer-events: none;
+                }
+
+                h1 {
+                    font-size: 21px;
+                }
+
+                h2 {
+                    font-size: 17px;
+                }
+
+                #screenNameInput {
+                    font-size: 14px;
+                    width: 100px;
+                    pointer-events: auto;
+                }
             }
-
-            h1 {
-                font-size: 42px;
-            }
-
-            h2 {
-                font-size: 24px;
-            }
-
-            #screenNameInput {
-                font-size: 17px;
-                width: 100px;
-                pointer-events: auto;
-            }
-
-
-        } */
         </style>
     </head>
 
@@ -366,6 +359,8 @@
                 <th>Score</th>
             </tr>
         </table>
+        <canvas id="XYControllerLook"></canvas>
+        <canvas id="XYControllerMove"></canvas>
         <script type="module" src="bundle.js"></script>
     </body>
 </html>

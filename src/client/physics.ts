@@ -4,7 +4,6 @@ export default class Physics {
     world: CANNON.World
     groundMaterial: CANNON.Material
     wheelMaterial: CANNON.Material
-    wheelGroundContactMaterial: CANNON.ContactMaterial
 
     constructor() {
         this.world = new CANNON.World()
@@ -12,7 +11,7 @@ export default class Physics {
 
         this.groundMaterial = new CANNON.Material('groundMaterial')
         this.wheelMaterial = new CANNON.Material('wheelMaterial')
-        this.wheelGroundContactMaterial = new CANNON.ContactMaterial(
+        const wheelGroundContactMaterial = new CANNON.ContactMaterial(
             this.wheelMaterial,
             this.groundMaterial,
             {
@@ -21,7 +20,7 @@ export default class Physics {
                 contactEquationStiffness: 1000,
             }
         )
-        this.world.addContactMaterial(this.wheelGroundContactMaterial)
+        this.world.addContactMaterial(wheelGroundContactMaterial)
 
         this.world.addEventListener('postStep', () => {
             // Gravity towards (0,0,0)

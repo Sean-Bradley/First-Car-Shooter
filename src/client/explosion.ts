@@ -21,7 +21,7 @@ export default class Explosion {
         this.particles.visible = false
     }
 
-    public explode(position: THREE.Vector3) {
+    explode(position: THREE.Vector3) {
         this.particles.position.x = position.x
         this.particles.position.y = position.y
         this.particles.position.z = position.z
@@ -46,7 +46,7 @@ export default class Explosion {
         this.particles.visible = true
     }
 
-    public update() {
+    update() {
         if (!this.particles.visible) return
         const positions = (this.particles.geometry as THREE.BufferGeometry)
             .attributes.position.array as Array<number>

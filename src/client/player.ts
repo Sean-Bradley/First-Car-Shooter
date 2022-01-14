@@ -6,57 +6,47 @@ import {
     Lensflare,
     LensflareElement,
 } from 'three/examples/jsm/objects/Lensflare.js'
-import {
-    CSS2DRenderer,
-    CSS2DObject,
-} from 'three/examples/jsm/renderers/CSS2DRenderer'
+import { CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer'
 
 export default class Player {
-    scene: THREE.Scene
-    physics: Physics
-    frameMesh = new THREE.Mesh()
-    turretPivot = new THREE.Object3D()
-    turretMesh = new THREE.Mesh()
-    wheelLFMesh = new THREE.Group()
-    wheelRFMesh = new THREE.Group()
-    wheelLBMesh = new THREE.Group()
-    wheelRBMesh = new THREE.Group()
-    bulletMesh = [new THREE.Mesh(), new THREE.Mesh(), new THREE.Mesh()]
-    lastBulletCounter = [-1, -1, -1] //used to decide if a bullet should instantly be repositioned or smoothly lerped
+    private scene: THREE.Scene
+    private physics: Physics
+    private frameMesh = new THREE.Mesh()
+    private turretPivot = new THREE.Object3D()
+    private turretMesh = new THREE.Mesh()
+    private wheelLFMesh = new THREE.Group()
+    private wheelRFMesh = new THREE.Group()
+    private wheelLBMesh = new THREE.Group()
+    private wheelRBMesh = new THREE.Group()
+    private bulletMesh = [new THREE.Mesh(), new THREE.Mesh(), new THREE.Mesh()]
+    private lastBulletCounter = [-1, -1, -1] //used to decide if a bullet should instantly be repositioned or smoothly lerped
 
     partIds: number[] = []
-    //public collisionPartIds: number[] = []
 
-    frameBody: CANNON.Body
-    wheelLFBody: CANNON.Body
-    wheelRFBody: CANNON.Body
-    wheelLBBody: CANNON.Body
-    wheelRBBody: CANNON.Body
+    private frameBody: CANNON.Body
+    private wheelLFBody: CANNON.Body
+    private wheelRFBody: CANNON.Body
+    private wheelLBBody: CANNON.Body
+    private wheelRBBody: CANNON.Body
 
-    public enabled = false
-    public screenName = ''
-    public lastScreenName = ''
+    enabled = false
+    private screenName = ''
+    private lastScreenName = ''
 
-    targetPosFrame = new THREE.Vector3()
-    targetQuatFrame = new THREE.Quaternion()
-    targetPosTurret = new THREE.Vector3()
-    targetQuatTurret = new THREE.Quaternion()
-    targetPosWheelLF = new THREE.Vector3()
-    targetQuatWheelLF = new THREE.Quaternion()
-    targetPosWheelRF = new THREE.Vector3()
-    targetQuatWheelRF = new THREE.Quaternion()
-    targetPosWheelLB = new THREE.Vector3()
-    targetQuatWheelLB = new THREE.Quaternion()
-    targetPosWheelRB = new THREE.Vector3()
-    targetQuatWheelRB = new THREE.Quaternion()
+    private targetPosFrame = new THREE.Vector3()
+    private targetPosTurret = new THREE.Vector3()
+    private targetPosWheelLF = new THREE.Vector3()
+    private targetPosWheelRF = new THREE.Vector3()
+    private targetPosWheelLB = new THREE.Vector3()
+    private targetPosWheelRB = new THREE.Vector3()
 
-    listener: THREE.AudioListener
+    private listener: THREE.AudioListener
     carSound: THREE.PositionalAudio
-    shootSound: THREE.PositionalAudio
+    private shootSound: THREE.PositionalAudio
 
-    lensflares = [new Lensflare(), new Lensflare(), new Lensflare()]
+    private lensflares = [new Lensflare(), new Lensflare(), new Lensflare()]
 
-    annotationDiv = document.createElement('div')
+    private annotationDiv = document.createElement('div')
 
     constructor(
         scene: THREE.Scene,
@@ -239,7 +229,7 @@ export default class Player {
 
     updateTargets(data: any) {
         this.screenName = data.sn
-        if(this.lastScreenName !== this.screenName){
+        if (this.lastScreenName !== this.screenName) {
             //changed
             this.annotationDiv.innerHTML = this.screenName
             this.lastScreenName = this.screenName

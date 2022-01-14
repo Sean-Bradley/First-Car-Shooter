@@ -13,9 +13,10 @@ export default class Physics {
     earthSphere = new THREE.Mesh()
     earthBody = new CANNON.Body()
 
-    public moons: { [id: string]: Moon } = {}
+    moons: { [id: string]: Moon } = {}
 
     io: socketIO.Server
+
     constructor(io: socketIO.Server) {
         this.io = io
 

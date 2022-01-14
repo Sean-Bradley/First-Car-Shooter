@@ -15,26 +15,28 @@ import { CSS2DRenderer } from 'three/examples/jsm/renderers/CSS2DRenderer'
 import CannonUtils from './utils/cannonUtils'
 
 export default class Game {
-    scene: THREE.Scene
-    camera: THREE.PerspectiveCamera
-    renderer: THREE.WebGLRenderer
-    listener: THREE.AudioListener
-    labelRenderer: CSS2DRenderer
+    private scene: THREE.Scene
+    private camera: THREE.PerspectiveCamera
+    private renderer: THREE.WebGLRenderer
+    private listener: THREE.AudioListener
+    private labelRenderer: CSS2DRenderer
     car: Car
     earth: Earth
-    physics: Physics
-    cannonDebugRenderer: CannonDebugRenderer
-    ui: UI
+    private physics: Physics
+    private cannonDebugRenderer: CannonDebugRenderer
+    private ui: UI
     socket: Socket
-    updateInterval: any //used to update server
-    myId = ''
-    gamePhase: number = 0
-    timestamp = 0
+    private updateInterval: any //used to update server
+    private myId = ''
+    private gamePhase: number = 0
+    private timestamp = 0
     players: { [id: string]: Player } = {}
-    explosions: Explosion[]
-    moons: { [id: string]: Moon } = {}
+    private explosions: Explosion[]
+    private moons: { [id: string]: Moon } = {}
     //springs: { [id: string]: Spring } = {}
-    explosionSound: THREE.PositionalAudio
+    private explosionSound: THREE.PositionalAudio
+
+    isMobile = false
 
     constructor(
         scene: THREE.Scene,
@@ -43,6 +45,14 @@ export default class Game {
         listener: THREE.AudioListener,
         labelRenderer: CSS2DRenderer
     ) {
+        if (
+            /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+                navigator.userAgent
+            )
+        ) {
+            this.isMobile = true
+        }
+
         this.scene = scene
         this.camera = camera
         this.renderer = renderer
@@ -312,12 +322,15 @@ export default class Game {
                 }
                 this.moons[m].updateTargets(gameData.moons[m])
             })
-            ;(document.getElementById('pingStats') as HTMLDivElement).innerHTML =
-                pingStatsHtml
+            if (!this.isMobile) {
+                ;(
+                    document.getElementById('pingStats') as HTMLDivElement
+                ).innerHTML = pingStatsHtml
+            }
         })
     }
 
-    public update = (delta: number) => {
+    update = (delta: number) => {
         this.physics.world.step(delta)
 
         //this.cannonDebugRenderer.update()

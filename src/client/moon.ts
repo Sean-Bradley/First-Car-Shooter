@@ -3,22 +3,16 @@ import * as CANNON from 'cannon-es'
 import Physics from './physics'
 
 export default class Moon {
-    physics: Physics
-    mesh: THREE.Mesh
+    private mesh: THREE.Mesh
     body: CANNON.Body
-    material: THREE.MeshStandardMaterial
-    targetPosMesh = new THREE.Vector3()
-    targetQuatMesh = new THREE.Quaternion()
+    private targetPosMesh = new THREE.Vector3()
+    private targetQuatMesh = new THREE.Quaternion()
     enabled = false
 
     constructor(scene: THREE.Scene, physics: Physics) {
-        this.physics = physics
-
-        this.material = new THREE.MeshStandardMaterial()
-        this.material.map = new THREE.TextureLoader().load(
-            'img/moon_540x270.jpg'
-        )
-        this.mesh = new THREE.Mesh(new THREE.SphereGeometry(10), this.material)
+        const material = new THREE.MeshStandardMaterial()
+        material.map = new THREE.TextureLoader().load('img/moon_540x270.jpg')
+        this.mesh = new THREE.Mesh(new THREE.SphereGeometry(10), material)
         this.mesh.castShadow = true
         this.mesh.receiveShadow = true
 
