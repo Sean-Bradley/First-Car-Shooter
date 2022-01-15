@@ -10,13 +10,16 @@ export class XYController {
 
     private canvas: HTMLCanvasElement
     private onChangeCallback: (value: Vec2) => void
+    private onClickCallBack?: () => void | undefined
 
     constructor(
         canvas: HTMLCanvasElement,
-        onChangeCallback: (value: Vec2) => void
+        onChangeCallback: (value: Vec2) => void,
+        onClickCallBack?: () => void | undefined
     ) {
         canvas.style.display = 'block'
         this.onChangeCallback = onChangeCallback
+        this.onClickCallBack = onClickCallBack
         this.canvas = canvas
         this.canvas.width = this.canvas.offsetWidth
         this.canvas.height = this.canvas.offsetHeight
@@ -24,6 +27,12 @@ export class XYController {
         this.buttonSize = { x: this.canvas.width / 10, y: this.canvas.height / 10 }
 
         this.update()
+
+        this.canvas.addEventListener('pointerdown', () => {
+            if (this.onClickCallBack) {
+                this.onClickCallBack()
+            }
+        })
 
         this.canvas.addEventListener('touchmove', (e) => {
             e.preventDefault()

@@ -49,6 +49,16 @@ export default class UI {
             'gameClosedAlert'
         ) as HTMLDivElement
 
+        if (this.game.isMobile) {
+            ;(
+                document.getElementById('mobileCommands') as HTMLDivElement
+            ).style.display = 'block'
+        } else {
+            ;(
+                document.getElementById('desktopCommands') as HTMLDivElement
+            ).style.display = 'block'
+        }
+
         this.startButton.addEventListener(
             'click',
             () => {
@@ -57,13 +67,15 @@ export default class UI {
                         document.getElementById(
                             'XYControllerLook'
                         ) as HTMLCanvasElement,
-                        this.onXYControllerLook
+                        this.onXYControllerLook,
+                        this.onClick
                     )
                     this.xycontrollerMove = new XYController(
                         document.getElementById(
                             'XYControllerMove'
                         ) as HTMLCanvasElement,
-                        this.onXYControllerMove
+                        this.onXYControllerMove,
+                        this.onClick
                     )
 
                     this.menuPanel.style.display = 'none'
@@ -265,7 +277,7 @@ export default class UI {
 
     onClick = () => {
         this.game.car.shoot()
-        return false
+        //return false
     }
 
     onDocumentMouseMove = (e: MouseEvent) => {
@@ -299,8 +311,8 @@ export default class UI {
     }
 
     onXYControllerLook = (vec2: Vec2) => {
-        this.game.car.chaseCamPivot.rotation.y -= vec2.x * 0.1
-        this.camAngle += vec2.y * 0.05
+        this.game.car.chaseCamPivot.rotation.y += vec2.x * 0.1
+        this.camAngle -= vec2.y * 0.05
         this.camAngle = Math.max(Math.min(this.camAngle, 0.5), -0.4)
         this.game.car.chaseCamPivot.position.y = this.camAngle * 4
         this.game.car.chaseCam.rotation.x = -this.camAngle

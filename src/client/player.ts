@@ -400,6 +400,8 @@ export default class Player {
         this.physics.world.removeBody(this.wheelRBBody)
         this.physics.world.removeBody(this.frameBody)
 
+        this.annotationDiv.remove()
+
         // work in progress
         //console.log('scene object count = ' + this.scene.children.length)
         //this.wheelLFMesh.traverse((child: THREE.Object3D) => {

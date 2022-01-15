@@ -159,7 +159,7 @@
                 position: absolute;
                 width: 180px;
                 height: 180px;
-                left: 0px;
+                right: 0px;
                 bottom: 0px;
                 background-color: rgba(255, 255, 255, 0.1);
                 display: none;
@@ -169,9 +169,15 @@
                 position: absolute;
                 width: 180px;
                 height: 180px;
-                right: 0px;
+                left: 0px;
                 bottom: 0px;
                 background-color: rgba(255, 255, 255, 0.1);
+                display: none;
+            }
+
+            #desktopCommands,
+            #mobileCommands {
+                margin: 4px;
                 display: none;
             }
 
@@ -290,11 +296,17 @@
                     >
                 </p>
 
-                Drive: WASD<br />
-                Brakes: SPACE<br />
-                Look: MOUSE<br />
-                Shoot: Left Click<br />
-                Respawn : R<br />
+                <div id="desktopCommands">
+                    Drive: WASD<br />
+                    Brakes: SPACE<br />
+                    Look: MOUSE<br />
+                    Shoot: Left Click<br />
+                    Respawn : R<br />
+                </div>
+                <div id="mobileCommands">
+                    Left XY Controller : Drive, Tap to shoot Right XY Controller :
+                    Look, Aim, Tap to shoot
+                </div>
                 <div>
                     <label for="email">ScreenName:</label>
                     <input
