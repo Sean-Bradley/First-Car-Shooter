@@ -23,11 +23,18 @@ This is an experiment with,
 
 ## Commands
 
--   Drive: WASD
--   Brakes: SPACE
--   Look: MOUSE
--   Shoot: Left Mouse Click
+### Desktop
+
+-   Drive : WASD
+-   Brakes : SPACE
+-   Look : MOUSE
+-   Shoot : Left Mouse Click
 -   Respawn : R
+
+### Mobile
+
+-   Left XY Controller : Drive, Tap to shoot
+-   Right XY Controller : Look, Aim, Tap to shoot
 
 ## Develop
 
@@ -63,10 +70,7 @@ npm run dev
 
 6. Visit [http://127.0.0.1:8080](http://127.0.0.1:8080)
 
--   Drive : W, A, S, D
--   Brakes : Space
--   Aim : Mouse
--   Shoot : Mouse Left Click
+See start screen instructions for commands to Drive, Aim and Shoot
 
 7. Edit project in VSCode
 
