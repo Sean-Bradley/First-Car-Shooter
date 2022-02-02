@@ -14,7 +14,7 @@ class CannonUtils {
     static CreateTrimesh(
         geometry: THREE.BufferGeometry
     ): CANNON.Trimesh {
-        const vertices = geometry.attributes.position.array as number[]
+        const vertices = geometry.clone().toNonIndexed().attributes.position.array as number[]
         const indices = Object.keys(vertices).map(Number)
         return new CANNON.Trimesh(vertices, indices)
     }

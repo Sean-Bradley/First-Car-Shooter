@@ -16,8 +16,13 @@ export default class Earth {
         const earthTexture = new THREE.TextureLoader().load(
             'img/worldColour.5400x2700.jpg'
         )
-        const earthMaterial = new THREE.MeshPhongMaterial() //{ wireframe: true })
-        earthMaterial.map = earthTexture
+        const material = new THREE.MeshPhongMaterial() //{ wireframe: true })
+        material.map = earthTexture
+
+        const normalMaterial = new THREE.TextureLoader().load(
+            'img/earth_normalmap_4096x2048.jpg'
+        )
+        material.normalMap = normalMaterial
 
         const objLoader = new OBJLoader()
         objLoader.load(
@@ -28,7 +33,7 @@ export default class Earth {
                         const m = child as THREE.Mesh
                         m.receiveShadow = true
                         m.castShadow = true
-                        m.material = earthMaterial
+                        m.material = material
                         this.mesh = m
 
                         const shape = CannonUtils.CreateTrimesh(m.geometry)
@@ -123,10 +128,7 @@ export default class Earth {
         const intersects = raycaster.intersectObject(this.mesh, false)
         let pos = new THREE.Vector3()
         if (intersects.length > 0) {
-            pos = intersects[0].point.addScaledVector(
-                outside.normalize(),
-                4
-            )
+            pos = intersects[0].point.addScaledVector(outside.normalize(), 4)
         }
         return pos
     }

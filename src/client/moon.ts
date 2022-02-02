@@ -12,6 +12,11 @@ export default class Moon {
     constructor(scene: THREE.Scene, physics: Physics) {
         const material = new THREE.MeshStandardMaterial()
         material.map = new THREE.TextureLoader().load('img/moon_540x270.jpg')
+        material.flatShading = false
+
+        const normalMap = new THREE.TextureLoader().load('img/moon_normalmap.jpg')
+        material.normalMap = normalMap
+
         this.mesh = new THREE.Mesh(new THREE.SphereGeometry(10), material)
         this.mesh.castShadow = true
         this.mesh.receiveShadow = true
