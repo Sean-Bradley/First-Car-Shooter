@@ -300,7 +300,7 @@ export default class UI {
 
     onDocumentKey = (e: KeyboardEvent) => {
         this.keyMap[e.code] = e.type === 'keydown'
-        console.log('keydown')
+        //console.log('keydown')
         if (this.keyMap['KeyR']) {
             if (!this.game.car.enabled) {
                 this.game.car.fix()
