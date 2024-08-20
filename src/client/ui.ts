@@ -1,5 +1,5 @@
 import Game from './game'
-import { TWEEN } from 'three/examples/jsm/libs/tween.module.min'
+import JEASINGS from 'jeasings'
 import { Vec2, XYController } from './XYController'
 
 export default class UI {
@@ -239,9 +239,9 @@ export default class UI {
                 this.game.players[p].carSound.play()
             })
 
-            new TWEEN.Tween(this.game.car.chaseCam.position)
-                .to({ z: 4 })
-                .easing(TWEEN.Easing.Cubic.Out)
+            new JEASINGS.JEasing(this.game.car.chaseCam.position)
+                .to({ z: 4 }, 10)
+                .easing(JEASINGS.Cubic.Out)
                 .start()
         } else {
             this.renderer.domElement.removeEventListener(
@@ -268,9 +268,9 @@ export default class UI {
                 this.game.players[p].carSound.stop()
             })
 
-            new TWEEN.Tween(this.game.car.chaseCam.position)
-                .to({ z: 250 })
-                .easing(TWEEN.Easing.Cubic.Out)
+            new JEASINGS.JEasing(this.game.car.chaseCam.position)
+                .to({ z: 250 }, 10)
+                .easing(JEASINGS.Cubic.Out)
                 .start()
         }
     }

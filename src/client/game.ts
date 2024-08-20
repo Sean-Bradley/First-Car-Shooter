@@ -9,9 +9,8 @@ import { io, Socket } from 'socket.io-client'
 import Player from './player'
 import Explosion from './explosion'
 import Moon from './moon'
-//import Spring from './spring'
-import { TWEEN } from 'three/examples/jsm/libs/tween.module.min'
 import { CSS2DRenderer } from 'three/examples/jsm/renderers/CSS2DRenderer'
+import JEASINGS from 'jeasings'
 import CannonUtils from './utils/cannonUtils'
 
 export default class Game {
@@ -173,9 +172,9 @@ export default class Game {
                         )
                         this.car.cameraTempPosition.position.copy(v)
                         this.car.cameraTempPosition.add(this.car.chaseCamPivot)
-                        new TWEEN.Tween(this.car.chaseCam.position)
-                            .to({ z: 250 })
-                            .easing(TWEEN.Easing.Cubic.Out)
+                        new JEASINGS.JEasing(this.car.chaseCam.position)
+                            .to({ z: 250 }, 10)
+                            .easing(JEASINGS.Cubic.Out)
                             .start()
 
                         this.car.explode(
@@ -262,9 +261,9 @@ export default class Game {
                         const pos = this.earth.getSpawnPosition()
                         this.car.spawn(pos)
 
-                        new TWEEN.Tween(this.car.chaseCam.position)
-                            .to({ z: 4 })
-                            .easing(TWEEN.Easing.Cubic.Out)
+                        new JEASINGS.JEasing(this.car.chaseCam.position)
+                            .to({ z: 4 }, 10)
+                            .easing(JEASINGS.Cubic.Out)
                             .start()
                     }
 
@@ -353,6 +352,6 @@ export default class Game {
             e.update()
         })
 
-        TWEEN.update()
+        JEASINGS.update()
     }
 }
